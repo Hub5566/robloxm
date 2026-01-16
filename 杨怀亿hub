@@ -139,7 +139,12 @@ local function showAllLockerPages()
         local LockerPanel = BackpackUI:FindFirstChild("Holder") and BackpackUI.Holder:FindFirstChild("Locker")
         if not LockerPanel then return end
 
-        LockerPanel.Visible = true
+        -- 修复：ScreenGui 用 Enabled 而不是 Visible
+        if LockerPanel:IsA("GuiObject") then
+            LockerPanel.Visible = true
+        end
+        
+        -- 显示所有槽位
         local slotFrame = LockerPanel:FindFirstChild("Frame")
         if slotFrame then
             for _, slot in ipairs(slotFrame:GetChildren()) do
@@ -163,8 +168,13 @@ local function showAllLockerPages()
     local BackpackUI = GUILoader.Get("Backpack")
     local LockerPanel = BackpackUI.Holder.Locker
 
-    LockerPanel.Visible = true
-    BackpackUI.Holder.Backpack.LockerText.Visible = true
+    -- 修复：ScreenGui 用 Enabled 而不是 Visible
+    if LockerPanel:IsA("GuiObject") then
+        LockerPanel.Visible = true
+    end
+    if BackpackUI.Holder.Backpack.LockerText:IsA("GuiObject") then
+        BackpackUI.Holder.Backpack.LockerText.Visible = true
+    end
 
     local slotFrame = LockerPanel.Frame
     for _, slot in ipairs(slotFrame:GetChildren()) do
@@ -180,25 +190,30 @@ local function showAllLockerPages()
     end
 
     local UnlockAllBtn = LockerPanel.Buttons.UnlockAll
-    UnlockAllBtn.Visible = true
-    UnlockAllBtn.Label.Text = "已解锁全部页面"
-    UnlockAllBtn.Discount.Visible = false
+    if UnlockAllBtn then
+        UnlockAllBtn.Visible = true
+        UnlockAllBtn.Label.Text = "已解锁全部页面"
+        UnlockAllBtn.Discount.Visible = false
+    end
 
     local PageSelector = LockerPanel.Buttons.PageSelector
-    PageSelector.Left.Visible = false
-    PageSelector.Right.Visible = false
-    PageSelector.PageNum.Text = "全部已解锁"
+    if PageSelector then
+        PageSelector.Left.Visible = false
+        PageSelector.Right.Visible = false
+        PageSelector.PageNum.Text = "全部已解锁"
+    end
 end
 
--- 背包状态监听（仅背包打开时运行）
+-- 背包状态监听（修复：用 Enabled 代替 Visible）
 local function setupBackpackListener()
     local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
     local BackpackUI = PlayerGui:FindFirstChild("Backpack") or PlayerGui:FindFirstChild("Inventory")
     if not BackpackUI then return end
 
-    -- 监听背包显隐
+    -- 监听背包显隐：ScreenGui 用 Enabled 属性
     local function onBackpackVisibilityChanged()
-        isBackpackOpen = BackpackUI.Visible
+        -- 修复：判断 ScreenGui 的 Enabled（而不是 Visible）
+        isBackpackOpen = BackpackUI.Enabled
         if FORCE_UNLOCK_LOCKER then
             if isBackpackOpen and not lockerUnlockLoop then
                 lockerUnlockLoop = task.spawn(function()
@@ -218,7 +233,8 @@ local function setupBackpackListener()
 
     -- 初始检测
     onBackpackVisibilityChanged()
-    BackpackUI:GetPropertyChangedSignal("Visible"):Connect(onBackpackVisibilityChanged)
+    -- 修复：监听 Enabled 变化（而不是 Visible）
+    BackpackUI:GetPropertyChangedSignal("Enabled"):Connect(onBackpackVisibilityChanged)
 end
 setupBackpackListener()
 
@@ -1177,5 +1193,5 @@ local function cleanup()
 end 
 game:GetService("UserInputService").WindowFocusReleased:Connect(cleanup)
 
-print("✅ 脚本加载完成｜储物柜功能已整合到魔法标签｜仅背包打开时运行")
+print("✅ 脚本加载完成｜储物柜功能已整合到魔法标签｜仅背包打开时运行（已修复Visible/Enabled错误）")
 
