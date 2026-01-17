@@ -1,11 +1,10 @@
+
+
 if not game:IsLoaded() then
     repeat task.wait() until game:IsLoaded()
 end
 
--- 修复：给不存在的函数默认空实现
-setfpscap = setfpscap or function() end
-
-if type(setfpscap) == "function" then
+if setfpscap then
     setfpscap(1000000)
     game:GetService("StarterGui"):SetCore("SendNotification", {
         Title = "dsc.gg/dyhub",
@@ -24,269 +23,7 @@ else
     warn("Your exploit does not support setfpscap.")
 end
 
--- ===================== 翻译字典（嵌入到原脚本头部） =====================
-local Translation = {
-    -- Tab 标题翻译
-    ["Information"] = "信息面板",
-    ["Farming"] = "挂机核心",
-    ["Others"] = "其他功能",
-    ["Items"] = "物品获取",
-    ["Settings"] = "参数配置",
-    ["Player"] = "玩家修改",
-    ["Stats"] = "属性加点",
-    ["Sea Event"] = "海域活动",
-    ["Sea Stack"] = "海域堆叠",
-    ["Sea Settings"] = "海域设置",
-    ["Dragon Dojo"] = "龙道场",
-    ["Race V4"] = "种族V4",
-    ["Combat"] = "战斗辅助",
-    ["Raid"] = "突袭玩法",
-    ["Esp"] = "透视功能",
-    ["Teleport"] = "传送功能",
-    ["Shop"] = "商店购买",
-    ["Fruit"] = "果实相关",
-    ["Misc"] = "杂项功能",
-    ["Server"] = "服务器管理",
-
-    -- _G.Settings 顶级分类翻译
-    ["Main"] = "主设置",
-    ["Event"] = "活动设置",
-    ["Farm"] = "挂机设置",
-    ["Setting"] = "参数设置",
-    ["Stats"] = "属性设置",
-    ["Items"] = "物品设置",
-    ["Esp"] = "透视设置",
-    ["DragonDojo"] = "龙道场设置",
-    ["SeaEvent"] = "海域活动设置",
-    ["SettingSea"] = "海域参数设置",
-    ["SeaStack"] = "海域堆叠设置",
-    ["Race"] = "种族设置",
-    ["Combat"] = "战斗设置",
-    ["Raid"] = "突袭设置",
-    ["Shop"] = "商店设置",
-    ["LocalPlayer"] = "本地玩家设置",
-    ["Fruit"] = "果实设置",
-    ["Misc"] = "杂项设置",
-
-    -- _G.Settings 子项翻译
-    ["Select Weapon"] = "选择武器",
-    ["Farm Level Method"] = "升级方式",
-    ["Auto Farm"] = "自动挂机",
-    ["Auto Fast Farm"] = "自动快速挂机",
-    ["Mastery Method"] = "精通升级方式",
-    ["Auto Farm Fruit Mastery"] = "自动刷果实精通",
-    ["Auto Farm Gun Mastery"] = "自动刷枪械精通",
-    ["Selected Mastery Sword"] = "已选精通武器（剑）",
-    ["Auto Farm Sword Mastery"] = "自动刷剑术精通",
-    ["Auto Summon Tyrant Of The Skies"] = "自动召唤天空霸主",
-    ["Auto Kill Tyrant Of The Skies"] = "自动击杀天空霸主",
-    ["Selected Mon"] = "已选怪物",
-    ["Auto Farm Mon"] = "自动刷怪",
-    ["Selected Boss"] = "已选首领",
-    ["Auto Farm Boss"] = "自动刷首领",
-    ["Auto Farm All Boss"] = "自动刷全部首领",
-    ["Auto Elite Hunter"] = "自动精英猎杀",
-    ["Auto Elite Hunter Hop"] = "自动精英猎杀瞬移",
-    ["Selected Bone Farm Method"] = "刷骨方式",
-    ["Auto Farm Bone"] = "自动刷骨",
-    ["Auto Random Surprise"] = "自动触发随机惊喜",
-    ["Auto Pirate Raid"] = "自动海盗突袭",
-    ["Auto Farm Chest Tween"] = "自动瞬移开宝箱",
-    ["Auto Farm Chest Instant"] = "自动瞬间开宝箱",
-    ["Auto Chest Hop"] = "自动宝箱瞬移",
-    ["Auto Farm Chest Mirage"] = "自动刷幻境宝箱",
-    ["Auto Stop Items"] = "自动停止拾取物品",
-    ["Auto Farm Katakuri"] = "自动刷卡塔库栗",
-    ["Auto Spawn Cake Prince"] = "自动召唤蛋糕王子",
-    ["Auto Kill Cake Prince"] = "自动击杀蛋糕王子",
-    ["Auto Kill Dough King"] = "自动击杀面团国王",
-    ["Selected Material"] = "已选材料",
-    ["Auto Farm Material"] = "自动刷材料",
-    ["Spin Position"] = "旋转视角",
-    ["Farm Distance"] = "挂机距离",
-    ["Player Tween Speed"] = "玩家瞬移速度",
-    ["Bring Mob"] = "怪物牵引",
-    ["Bring Mob Mode"] = "怪物牵引模式",
-    ["Fast Attack"] = "快速攻击",
-    ["Fast Attack Mode"] = "快速攻击模式",
-    ["Attack Aura"] = "攻击光环",
-    ["Hide Notification"] = "隐藏通知",
-    ["Hide Damage Text"] = "隐藏伤害数值",
-    ["Black Screen"] = "黑屏模式",
-    ["White Screen"] = "白屏模式",
-    ["Hide Monster"] = "隐藏怪物",
-    ["Mastery Health"] = "精通保留血量",
-    ["Fruit Mastery Skill Z"] = "果实精通技能Z",
-    ["Fruit Mastery Skill X"] = "果实精通技能X",
-    ["Fruit Mastery Skill C"] = "果实精通技能C",
-    ["Fruit Mastery Skill V"] = "果实精通技能V",
-    ["Fruit Mastery Skill F"] = "果实精通技能F",
-    ["Gun Mastery Skill Z"] = "枪械精通技能Z",
-    ["Gun Mastery Skill X"] = "枪械精通技能X",
-    ["Auto Set Spawn Point"] = "自动设置重生点",
-    ["Auto Observation"] = "自动见闻色",
-    ["Auto Haki"] = "自动武装色",
-    ["Auto Rejoin"] = "自动重新加入",
-    ["Auto Add Melee Stats"] = "自动加近战属性",
-    ["Auto Add Defense Stats"] = "自动加防御属性",
-    ["Auto Add Devil Fruit Stats"] = "自动加果实属性",
-    ["Auto Add Sword Stats"] = "自动加剑术属性",
-    ["Auto Add Gun Stats"] = "自动加枪械属性",
-    ["Point Stats"] = "属性点数",
-    ["Auto Second Sea"] = "自动解锁第二海域",
-    ["Auto Third Sea"] = "自动解锁第三海域",
-    ["Auto Farm Factory"] = "自动刷工厂",
-    ["Auto Super Human"] = "自动获取超人拳",
-    ["Auto Death Step"] = "自动获取死步",
-    ["Auto Fishman Karate"] = "自动获取鱼人空手道",
-    ["Auto Electric Claw"] = "自动获取电击爪",
-    ["Auto Dragon Talon"] = "自动获取龙爪手",
-    ["Auto God Human"] = "自动获取神拳",
-    ["Auto Saber"] = "自动获取武士刀",
-    ["Auto Buddy Sword"] = "自动获取伙伴剑",
-    ["Auto Soul Guitar"] = "自动获取灵魂吉他",
-    ["Auto Rengoku"] = "自动获取炼狱刀",
-    ["Auto Hallow Scythe"] = "自动获取圣徒镰刀",
-    ["Auto Warden Sword"] = "自动获取狱卒剑",
-    ["Auto Cursed Dual Katana"] = "自动获取诅咒双剑",
-    ["Auto Yama"] = "自动获取阎魔刀",
-    ["Auto Tushita"] = "自动获取秋水刀",
-    ["Auto Canvander"] = "自动获取坎万德剑",
-    ["Auto Dragon Trident"] = "自动获取龙三叉戟",
-    ["Auto Pole"] = "自动获取长棍",
-    ["Auto Shawk Saw"] = "自动获取鹰眼锯",
-    ["Auto Greybeard"] = "自动获取白胡子拳套",
-    ["Auto Swan Glasses"] = "自动获取天鹅眼镜",
-    ["Auto Arena Trainer"] = "自动挑战竞技场教练",
-    ["Auto Dark Dagger"] = "自动获取黑暗匕首",
-    ["Auto Press Haki Button"] = "自动按下武装色按钮",
-    ["Auto Rainbow Haki"] = "自动获取彩虹武装色",
-    ["Auto Holy Torch"] = "自动获取圣火炬",
-    ["Auto Bartilo Quest"] = "自动完成巴蒂洛任务",
-    ["ESP Player"] = "玩家透视",
-    ["ESP Chest"] = "宝箱透视",
-    ["ESP DevilFruit"] = "恶魔果实透视",
-    ["ESP RealFruit"] = "真实果实透视",
-    ["ESP Flower"] = "花朵透视",
-    ["ESP Island"] = "岛屿透视",
-    ["ESP Npc"] = "NPC透视",
-    ["ESP Sea Beast"] = "海兽透视",
-    ["ESP Monster"] = "怪物透视",
-    ["ESP Mirage"] = "幻境透视",
-    ["ESP Kitsune"] = "狐火透视",
-    ["ESP Frozen"] = "冰冻区域透视",
-    ["ESP Advanced Fruit Dealer"] = "高级果实商人透视",
-    ["ESP Aura"] = "光环透视",
-    ["ESP Gear"] = "装备透视",
-    ["Auto Farm Blaze Ember"] = "自动刷火焰余烬",
-    ["Auto Collect Blaze Ember"] = "自动收集火焰余烬",
-    ["Selected Boat"] = "已选船只",
-    ["Selected Zone"] = "已选区域",
-    ["Boat Tween Speed"] = "船只瞬移速度",
-    ["Sail Boat"] = "驾驶船只",
-    ["Auto Farm Shark"] = "自动刷鲨鱼",
-    ["Auto Farm Piranha"] = "自动刷食人鱼",
-    ["Auto Farm Fish Crew Member"] = "自动刷鱼人船员",
-    ["Auto Farm Ghost Ship"] = "自动刷幽灵船",
-    ["Auto Farm Pirate Brigade"] = "自动刷海盗小队",
-    ["Auto Farm Pirate Grand Brigade"] = "自动刷海盗大队",
-    ["Auto Farm Terrorshark"] = "自动刷恐怖鲨鱼",
-    ["Auto Farm Seabeasts"] = "自动刷海兽",
-    ["Dodge Seabeasts Attack"] = "躲避海兽攻击",
-    ["Dodge Terrorshark Attack"] = "躲避恐怖鲨鱼攻击",
-    ["Lightning"] = "闪电特效",
-    ["Increase Boat Speed"] = "提升船只速度",
-    ["No Clip Rock"] = "穿墙过石",
-    ["Use Devil Fruit Skill"] = "使用果实技能",
-    ["Use Melee Skill"] = "使用近战技能",
-    ["Use Sword Skill"] = "使用剑术技能",
-    ["Use Gun Skill"] = "使用枪械技能",
-    ["Devil Fruit Z Skill"] = "果实技能Z",
-    ["Devil Fruit X Skill"] = "果实技能X",
-    ["Devil Fruit C Skill"] = "果实技能C",
-    ["Devil Fruit V Skill"] = "果实技能V",
-    ["Devil Fruit F Skill"] = "果实技能F",
-    ["Melee Z Skill"] = "近战技能Z",
-    ["Melee X Skill"] = "近战技能X",
-    ["Melee C Skill"] = "近战技能C",
-    ["Melee V Skill"] = "近战技能V",
-    ["Tween To Frozen Dimension"] = "瞬移至冰冻维度",
-    ["Summon Frozen Dimension"] = "召唤冰冻维度",
-    ["Tween To Kitsune Island"] = "瞬移至狐火岛屿",
-    ["Summon Kitsune Island"] = "召唤狐火岛屿",
-    ["Auto Collect Azure Ember"] = "自动收集蔚蓝余烬",
-    ["Set Azure Ember"] = "蔚蓝余烬目标数量",
-    ["Auto Trade Azure Ember"] = "自动交易蔚蓝余烬",
-    ["Tween To Mirage Island"] = "瞬移至幻境岛屿",
-    ["Teleport To Advanced Fruit Dealer"] = "传送至高级果实商人",
-    ["Auto Attack Seabeasts"] = "自动攻击海兽",
-    ["Summon Prehistoric Island"] = "召唤史前岛屿",
-    ["Tween To Prehistoric Island"] = "瞬移至史前岛屿",
-    ["Auto Kill Lava Golem"] = "自动击杀熔岩魔像",
-    ["Auto Race V2"] = "自动升级种族V2",
-    ["Auto Race V3"] = "自动升级种族V3",
-    ["Selected Place"] = "已选地点",
-    ["Teleport To Place"] = "传送至目标地点",
-    ["Auto Buy Gear"] = "自动购买装备",
-    ["Tween To Highest Mirage"] = "瞬移至最高幻境",
-    ["Find Blue Gear"] = "寻找蓝色装备",
-    ["Look Moon Ability"] = "观望月亮能力",
-    ["Auto Train"] = "自动训练",
-    ["Auto Kill Player After Trial"] = "试炼后自动击杀玩家",
-    ["Auto Trial"] = "自动参与试炼",
-    ["Auto Kill Player Quest"] = "自动击杀任务目标玩家",
-    ["Aimbot Gun"] = "枪械自动瞄准",
-    ["Aimbot Skill Neares"] = "技能自动瞄准最近目标",
-    ["Aimbot Skill"] = "技能自动瞄准",
-    ["Enable PvP"] = "开启玩家对战",
-    ["Selected Chip"] = "已选芯片",
-    ["Auto Raid"] = "自动参与突袭",
-    ["Auto Awaken"] = "自动觉醒",
-    ["Price Devil Fruit"] = "果实售价",
-    ["Unstore Devil Fruit"] = "取出仓库果实",
-    ["Law Raid"] = "罗的突袭",
-    ["Auto Buy Legendary Sword"] = "自动购买传说级剑",
-    ["Auto Buy Haki Color"] = "自动购买武装色颜色",
-    ["Infinite Energy"] = "无限能量",
-    ["Infinite Ability"] = "无限技能",
-    ["Infinite Geppo"] = "无限月步",
-    ["Infinite Soru"] = "无限剃",
-    ["Dodge No Cooldown"] = "闪避无冷却",
-    ["Active Race V3"] = "激活种族V3",
-    ["Active Race V4"] = "激活种族V4",
-    ["Walk On Water"] = "水上行走",
-    ["No Clip"] = "穿墙模式",
-    ["Auto Buy Random Fruit"] = "自动购买随机果实",
-    ["Store Rarity Fruit"] = "仓库果实稀有度",
-    ["Auto Store Fruit"] = "自动存入果实",
-    ["Fruit Notification"] = "果实刷新通知",
-    ["Teleport To Fruit"] = "传送至果实位置",
-    ["Tween To Fruit"] = "瞬移至果实位置",
-    ["Hide Chat"] = "隐藏聊天框",
-    ["Hide Leaderboard"] = "隐藏排行榜",
-    ["Highlight Mode"] = "高亮模式"
-}
-
--- 翻译核心函数
-local function T(key)
-    return Translation[key] or key
-end
-
--- ===================== 原脚本 UI 加载部分 =====================
-local success, WindUI = pcall(function()
-    return loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
-end)
-
-if not success then
-    game:GetService("StarterGui"):SetCore("SendNotification", {
-        Title = "UI 加载失败",
-        Text = "无法加载 WindUI 库：" .. tostring(WindUI),
-        Duration = 10,
-        Button1 = "Okay"
-    })
-    error("WindUI 加载失败: " .. tostring(WindUI))
-end
-
+local WindUI = (loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua")))();
 local Window = WindUI:CreateWindow({
     Title = "DYHUB",
     Icon = "rbxassetid://104487529937663",
@@ -303,8 +40,7 @@ local Window = WindUI:CreateWindow({
         Enabled = true,
         Anonymous = false
     },
-})
-
+});
 Window:EditOpenButton({
     Title = "DYHUB - Open",
     Icon = "monitor",
@@ -312,122 +48,117 @@ Window:EditOpenButton({
     StrokeThickness = 2,
     Color = ColorSequence.new(Color3.fromRGB(30, 30, 30), Color3.fromRGB(255, 255, 255)),
     Draggable = true
-})
-
--- 生成 Tab 时自动翻译标题
+});
 local Tabs = {
     InfoTab = Window:Tab({
-        Title = T("Information"),
+        Title = "Information",
         Icon = "info",
-        Desc = T("Info Section")
+        Desc = "Info Section"
     }),
     MainDivider = Window:Divider(),
     MainTab = Window:Tab({
-        Title = T("Farming"),
+        Title = "Farming",
         Icon = "rocket",
-        Desc = T("Main Section")
+        Desc = "Main Section"
     }),
     OthersTab = Window:Tab({
-        Title = T("Others"),
+        Title = "Others",
         Icon = "crown",
-        Desc = T("Farming Section")
+        Desc = "Farming Section"
     }),
     ItemsTab = Window:Tab({
-        Title = T("Items"),
+        Title = "Items",
         Icon = "box",
-        Desc = T("Items Section")
+        Desc = "Items Section"
     }),
     SettingsTab = Window:Tab({
-        Title = T("Settings"),
+        Title = "Settings",
         Icon = "settings",
-        Desc = T("Settings Section")
+        Desc = "Settings Section"
     }),
     PlayerDivider = Window:Divider(),
     LocalPlayerTab = Window:Tab({
-        Title = T("Player"),
+        Title = "Player",
         Icon = "user",
-        Desc = T("Local Player Section")
+        Desc = "Local Player Section"
     }),
     StatsTab = Window:Tab({
-        Title = T("Stats"),
+        Title = "Stats",
         Icon = "sliders-horizontal",
-        Desc = T("Stats Section")
+        Desc = "Stats Section"
     }),
     SeaDivider = Window:Divider(),
     SeaEventTab = Window:Tab({
-        Title = T("Sea Event"),
+        Title = "Sea Event",
         Icon = "anchor",
-        Desc = T("Sea Event Section")
+        Desc = "Sea Event Section"
     }),
     SeaStackTab = Window:Tab({
-        Title = T("Sea Stack"),
+        Title = "Sea Stack",
         Icon = "waves",
-        Desc = T("Sea Stack Section")
+        Desc = "Sea Stack Section"
     }),
     SeaSettingsTab = Window:Tab({
-        Title = T("Sea Settings"),
+        Title = "Sea Settings",
         Icon = "cog",
-        Desc = T("Sea Settings Section")
+        Desc = "Sea Settings Section"
     }),
     AutoDivider = Window:Divider(),
     DragonDojoTab = Window:Tab({
-        Title = T("Dragon Dojo"),
+        Title = "Dragon Dojo",
         Icon = "shield",
-        Desc = T("Dragon Dojo Section")
+        Desc = "Dragon Dojo Section"
     }),
     RaceTab = Window:Tab({
-        Title = T("Race V4"),
+        Title = "Race V4",
         Icon = "bot",
-        Desc = T("Race Section")
+        Desc = "Race Section"
     }),
     CombatDivider = Window:Divider(),
     CombatTab = Window:Tab({
-        Title = T("Combat"),
+        Title = "Combat",
         Icon = "sword",
-        Desc = T("Combat Section")
+        Desc = "Combat Section"
     }),
     RaidTab = Window:Tab({
-        Title = T("Raid"),
+        Title = "Raid",
         Icon = "door-open",
-        Desc = T("Raid Section")
+        Desc = "Raid Section"
     }),
     EspTab = Window:Tab({
-        Title = T("Esp"),
+        Title = "Esp",
         Icon = "eye",
-        Desc = T("Esp Section")
+        Desc = "Esp Section"
     }),
     TeleportTab = Window:Tab({
-        Title = T("Teleport"),
+        Title = "Teleport",
         Icon = "map-pinned",
-        Desc = T("Teleport Section")
+        Desc = "Teleport Section"
     }),
     ShopTab = Window:Tab({
-        Title = T("Shop"),
+        Title = "Shop",
         Icon = "shopping-cart",
-        Desc = T("Shop Section")
+        Desc = "Shop Section"
     }),
     FruitTab = Window:Tab({
-        Title = T("Fruit"),
+        Title = "Fruit",
         Icon = "apple",
-        Desc = T("Fruit Section")
+        Desc = "Fruit Section"
     }),
     MiscDivider = Window:Divider(),
     MiscTab = Window:Tab({
-        Title = T("Misc"),
+        Title = "Misc",
         Icon = "layout-grid",
-        Desc = T("Misc Section")
+        Desc = "Misc Section"
     }),
     ServerTab = Window:Tab({
-        Title = T("Server"),
+        Title = "Server",
         Icon = "server",
-        Desc = T("Server Section")
+        Desc = "Server Section"
     })
-}
-
-Window:SelectTab(1)
--- ===================== 生成中英双版本配置表 =====================
--- 原版英文配置表（保证功能正常）
-local RawSettings = {
+};
+Window:SelectTab(1);
+_G.Settings = {
     Main = {
         ["Select Weapon"] = "Melee",
         ["Farm Level Method"] = "Quest",
@@ -659,20 +390,7 @@ local RawSettings = {
         ["Hide Leaderboard"] = false,
         ["Highlight Mode"] = false
     }
-}
--- 自动生成中文配置表
-local TranslatedSettings = {}
-for topEn, topTab in pairs(RawSettings) do
-    local topCn = T(topEn)
-    TranslatedSettings[topCn] = {}
-    for subEn, value in pairs(topTab) do
-        TranslatedSettings[topCn][T(subEn)] = value
-    end
-end
--- 暴露双版本配置表到全局
-_G.Settings = RawSettings       -- 英文原版（功能用）
-_G.Settings_CN = TranslatedSettings -- 中文翻译版（显示用）
-warn("脚本加载完成！中文配置表已生成：_G.Settings_CN")
+};
 (getgenv()).Load = function()
     if readfile and writefile and isfile and isfolder then
         if not isfolder("Relz Hub New") then
