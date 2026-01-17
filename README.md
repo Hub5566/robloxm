@@ -425,7 +425,6 @@ local Tabs = {
 }
 
 Window:SelectTab(1)
-
 -- ===================== 生成中英双版本配置表 =====================
 -- 原版英文配置表（保证功能正常）
 local RawSettings = {
@@ -670,11 +669,9 @@ for topEn, topTab in pairs(RawSettings) do
         TranslatedSettings[topCn][T(subEn)] = value
     end
 end
-
 -- 暴露双版本配置表到全局
 _G.Settings = RawSettings       -- 英文原版（功能用）
 _G.Settings_CN = TranslatedSettings -- 中文翻译版（显示用）
-
 warn("脚本加载完成！中文配置表已生成：_G.Settings_CN")
 (getgenv()).Load = function()
     if readfile and writefile and isfile and isfolder then
