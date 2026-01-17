@@ -391,7 +391,6 @@ _G.Settings = {
         ["高亮模式"] = false
     }
 };
-
 (getgenv()).Load = function()
     if readfile and writefile and isfile and isfolder then
         if not isfolder("Relz Hub New") then
