@@ -674,7 +674,7 @@ local CoreGui = getService("CoreGui")
 
 -- Interface Management
 
-local Rayfield = useStudio and script.Parent:FindFirstChild('Rayfield') or game:GetObjects("rbxassetid://97021784498461")[1]
+local Rayfield = useStudio and script.Parent:FindFirstChild('Rayfield') or game:GetObjects("rbxassetid://10804731440")[1]
 local buildAttempts = 0
 local correctBuild = false
 local warned
@@ -695,7 +695,7 @@ repeat
 		warned = true
 	end
 
-	toDestroy, Rayfield = Rayfield, useStudio and script.Parent:FindFirstChild('Rayfield') or game:GetObjects("rbxassetid://97021784498461")[1]
+	toDestroy, Rayfield = Rayfield, useStudio and script.Parent:FindFirstChild('Rayfield') or game:GetObjects("rbxassetid://10804731440")[1]
 	if toDestroy and not useStudio then toDestroy:Destroy() end
 
 	buildAttempts = buildAttempts + 1
@@ -760,6 +760,18 @@ local dragOffsetMobile = 150
 
 Rayfield.DisplayOrder = 100
 LoadingFrame.Version.Text = Release
+
+-- 【核心修改：添加自定义背景】
+local CustomBackground = Instance.new("ImageLabel")
+CustomBackground.Name = "CustomBackground"
+CustomBackground.Parent = Main
+CustomBackground.Size = UDim2.new(1, 0, 1, 0)
+CustomBackground.ZIndex = -1  -- 置于底层不遮挡其他控件
+CustomBackground.BackgroundTransparency = 1
+CustomBackground.Image = "rbxassetid://97021784498461"  -- 你的背景ID
+CustomBackground.ImageTransparency = 0.2  -- 背景透明度（可调整）
+CustomBackground.ScaleType = Enum.ScaleType.Cover  -- 背景适配模式
+
 
 -- Thanks to Latte Softworks for the Lucide integration for Roblox
 local Icons = useStudio and require(script.Parent.icons) or loadWithTimeout('https://raw.githubusercontent.com/SiriusSoftwareLtd/Rayfield/refs/heads/main/icons.lua')
@@ -1144,4 +1156,9 @@ local function openSearch()
 
 	Main.Search.Visible = true
 
-	for _, tabbtn in ipairs(TabList
+	for _, tabbtn in ipairs(TabList:GetChildren()) do
+		if tabbtn:IsA("TextButton") then
+			tabbtn.Visible = false
+		end
+	end
+end
