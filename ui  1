@@ -11256,7 +11256,7 @@ task.spawn(function()
 if as.Icon then
 
 local l=ak("Frame",{
-Size=UDim2.new(0,22,0,22),
+Size=UDim2.new(0,13,0,13),
 BackgroundTransparency=1,
 Parent=as.UIElements.Main.Main.Topbar.Left,
 })
