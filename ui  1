@@ -11792,7 +11792,7 @@ as,
 true,
 B.IconThemed
 )
-H.Size=UDim2.new(0,22,0,22)
+H.Size=UDim2.new(0,16,0,16)
 H.Parent=G
 end
 
