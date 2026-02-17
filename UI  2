@@ -122,7 +122,7 @@ function library.new(library, name,theme)
         end
       end
 -------------------------AL------------------------------
-ALTransparency = 0.6
+ALTransparency = 0.6 -- 修改为0.6
 ALcolor = Color3.fromRGB(255,255,255)
 -------------------------AL------------------------------
 if theme == 'dark' then
@@ -188,7 +188,7 @@ end
       Main.ZIndex = 1
       Main.Active = true
       Main.Draggable = true
-      Main.Transparency = 1.0
+      Main.BackgroundTransparency = 0.6 -- 修改为0.6
       services.UserInputService.InputEnded:Connect(function(input)
       if input.KeyCode == Enum.KeyCode.LeftControl then
       if Main.Visible == true then
@@ -244,7 +244,7 @@ end
       TabMain.BackgroundTransparency = 1.000
       TabMain.Position = UDim2.new(0.217000037, 0, 0, 3)
       TabMain.Size = UDim2.new(0, 448, 0, 353)
-      TabMain.Transparency = 1.0
+      TabMain.BackgroundTransparency = 0.6 -- 修改为0.6
       
       MainC.CornerRadius = UDim.new(0, 5.5)
       MainC.Name = "MainC"
@@ -256,7 +256,7 @@ end
       SB.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
       SB.BorderColor3 = MainColor
       SB.Size = UDim2.new(0, 8, 0, 353)
-      SB.Transparency = 1.0
+      SB.BackgroundTransparency = 0.6 -- 修改为0.6
       
       SBC.CornerRadius = UDim.new(0, 6)
       SBC.Name = "SBC"
@@ -270,7 +270,7 @@ end
       Side.ClipsDescendants = true
       Side.Position = UDim2.new(1, 0, 0, 0)
       Side.Size = UDim2.new(0, 110, 0, 353)
-      Side.Transparency = 1.0
+      Side.BackgroundTransparency = 0.6 -- 修改为0.6
       
       SideG.Color = ColorSequence.new{ColorSequenceKeypoint.new(0.00, zyColor), ColorSequenceKeypoint.new(1.00, zyColor)}
       SideG.Rotation = 90
@@ -449,7 +449,7 @@ Open.Parent = Frame
 Open.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 Open.BorderColor3 = Color3.fromRGB(0, 0, 0)
 Open.BorderSizePixel = 0
-Open.Size = UDim2.new(1.5, 3, 1.5, 3)
+Open.Size = UDim2.new(1, 3, 1, 3)
 Open.Active = true
 Open.Draggable = true
 Open.Image = "rbxassetid://109529041318816"
@@ -548,7 +548,7 @@ UIG.Parent = Open
           Section.Name = "Section"
           Section.Parent = Tab
           Section.BackgroundColor3 = zyColor
-          Section.BackgroundTransparency = 1.000
+          Section.BackgroundTransparency = 0.6 -- 修改为0.6
           Section.BorderSizePixel = 0
           Section.ClipsDescendants = true
           Section.Size = UDim2.new(0.981000006, 0, 0, 36)
@@ -594,7 +594,7 @@ UIG.Parent = Open
           Objs.Name = "Objs"
           Objs.Parent = Section
           Objs.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-          Objs.BackgroundTransparency = 1
+          Objs.BackgroundTransparency = 0.6 -- 修改为0.6
           Objs.BorderSizePixel = 0
           Objs.Position = UDim2.new(0, 6, 0, 36)
           Objs.Size = UDim2.new(0.986347735, 0, 0, 0)
@@ -638,7 +638,7 @@ UIG.Parent = Open
             BtnModule.BorderSizePixel = 0
             BtnModule.Position = UDim2.new(0, 0, 0, 0)
             BtnModule.Size = UDim2.new(0, 428, 0, 38)
-            BtnModule.Transparency = 0.75
+            BtnModule.BackgroundTransparency = 0.75
             
             Btn.Name = "Btn"
             Btn.Parent = BtnModule
@@ -651,7 +651,7 @@ UIG.Parent = Open
             Btn.TextColor3 = ALcolor
             Btn.TextSize = 16.000
             Btn.TextXAlignment = Enum.TextXAlignment.Left
-            Btn.BackgroundTransparency = ALTransparency
+            Btn.BackgroundTransparency = ALTransparency -- 0.6
             
             BtnC.CornerRadius = UDim.new(0, 6)
             BtnC.Name = "BtnC"
@@ -683,7 +683,7 @@ UIG.Parent = Open
           TextLabel.Font = Enum.Font.GothamSemibold
           TextLabel.Text = text
           TextLabel.TextColor3 = ALcolor
-          TextLabel.BackgroundTransparency = ALTransparency
+          TextLabel.BackgroundTransparency = ALTransparency -- 0.6
           TextLabel.TextSize = 14.000
     
           LabelC.CornerRadius = UDim.new(0, 6)
@@ -719,7 +719,7 @@ UIG.Parent = Open
             ToggleBtn.Name = "ToggleBtn"
             ToggleBtn.Parent = ToggleModule
             ToggleBtn.BackgroundColor3 = zyColor
-            ToggleBtn.BackgroundTransparency = ALTransparency
+            ToggleBtn.BackgroundTransparency = ALTransparency -- 0.6
             ToggleBtn.BorderSizePixel = 0
             ToggleBtn.Size = UDim2.new(0, 428, 0, 38)
             ToggleBtn.AutoButtonColor = false
@@ -924,7 +924,7 @@ UIG.Parent = Open
             TextboxBack.Name = "TextboxBack"
             TextboxBack.Parent = TextboxModule
             TextboxBack.BackgroundColor3 = zyColor
-            TextboxBack.BackgroundTransparency = ALTransparency
+            TextboxBack.BackgroundTransparency = ALTransparency -- 0.6
             TextboxBack.BorderSizePixel = 0
             TextboxBack.Size = UDim2.new(0, 428, 0, 38)
             TextboxBack.AutoButtonColor = false
@@ -1025,7 +1025,7 @@ UIG.Parent = Open
             SliderBack.Name = "SliderBack"
             SliderBack.Parent = SliderModule
             SliderBack.BackgroundColor3 = zyColor
-            SliderBack.BackgroundTransparency = ALTransparency
+            SliderBack.BackgroundTransparency = ALTransparency -- 0.6
             SliderBack.BorderSizePixel = 0
             SliderBack.Size = UDim2.new(0, 428, 0, 38)
             SliderBack.AutoButtonColor = false
@@ -1043,7 +1043,7 @@ UIG.Parent = Open
             SliderBar.Parent = SliderBack
             SliderBar.AnchorPoint = Vector2.new(0, 0.5)
             SliderBar.BackgroundColor3 = Background
-            SliderBar.BackgroundTransparency = ALTransparency
+            SliderBar.BackgroundTransparency = ALTransparency -- 0.6
             SliderBar.BorderSizePixel = 0
             SliderBar.Position = UDim2.new(0.369000018, 40, 0.5, 0)
             SliderBar.Size = UDim2.new(0, 140, 0, 12)
@@ -1065,7 +1065,7 @@ UIG.Parent = Open
             SliderValBG.Name = "SliderValBG"
             SliderValBG.Parent = SliderBack
             SliderValBG.BackgroundColor3 = Background
-            SliderValBG.BackgroundTransparency = ALTransparency
+            SliderValBG.BackgroundTransparency = ALTransparency -- 0.6
             SliderValBG.BorderSizePixel = 0
             SliderValBG.Position = UDim2.new(0.883177578, 0, 0.131578952, 0)
             SliderValBG.Size = UDim2.new(0, 44, 0, 28)
@@ -1250,161 +1250,4 @@ UIG.Parent = Open
             DropdownModule.Size = UDim2.new(0, 428, 0, 38)
             
             DropdownTop.Name = "DropdownTop"
-            DropdownTop.Parent = DropdownModule
-            DropdownTop.BackgroundColor3 = zyColor
-            DropdownTop.BackgroundTransparency = ALTransparency
-            DropdownTop.BorderSizePixel = 0
-            DropdownTop.Size = UDim2.new(0, 428, 0, 38)
-            DropdownTop.AutoButtonColor = false
-            DropdownTop.Font = Enum.Font.GothamSemibold
-            DropdownTop.Text = ""
-            DropdownTop.TextColor3 = ALcolor
-            DropdownTop.TextSize = 16.000
-            DropdownTop.TextXAlignment = Enum.TextXAlignment.Left
-            
-            DropdownTopC.CornerRadius = UDim.new(0, 6)
-            DropdownTopC.Name = "DropdownTopC"
-            DropdownTopC.Parent = DropdownTop
-            
-            DropdownOpen.Name = "DropdownOpen"
-            DropdownOpen.Parent = DropdownTop
-            DropdownOpen.AnchorPoint = Vector2.new(0, 0.5)
-            DropdownOpen.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            DropdownOpen.BackgroundTransparency = 1.000
-            DropdownOpen.BorderSizePixel = 0
-            DropdownOpen.Position = UDim2.new(0.918383181, 0, 0.5, 0)
-            DropdownOpen.Size = UDim2.new(0, 20, 0, 20)
-            DropdownOpen.Font = Enum.Font.Gotham
-            DropdownOpen.Text = "+"
-            DropdownOpen.TextColor3 = ALcolor
-            DropdownOpen.TextSize = 24.000
-            DropdownOpen.TextWrapped = true
-            
-            DropdownText.Name = "DropdownText"
-            DropdownText.Parent = DropdownTop
-            DropdownText.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            DropdownText.BackgroundTransparency = 1.000
-            DropdownText.BorderSizePixel = 0
-            DropdownText.Position = UDim2.new(0.0373831764, 0, 0, 0)
-            DropdownText.Size = UDim2.new(0, 184, 0, 38)
-            DropdownText.Font = Enum.Font.GothamSemibold
-            DropdownText.PlaceholderColor3 = Color3.fromRGB(255, 255, 255)
-            DropdownText.PlaceholderText = text
-            DropdownText.Text = ""
-            DropdownText.TextColor3 = Color3.fromRGB(255, 255, 255)
-            DropdownText.TextSize = 16.000
-            DropdownText.TextXAlignment = Enum.TextXAlignment.Left
-            
-            DropdownModuleL.Name = "DropdownModuleL"
-            DropdownModuleL.Parent = DropdownModule
-            DropdownModuleL.SortOrder = Enum.SortOrder.LayoutOrder
-            DropdownModuleL.Padding = UDim.new(0, 4)
-    
-            local setAllVisible = function()
-              local options = DropdownModule:GetChildren() 
-              for i=1, #options do
-                local option = options[i]
-                if option:IsA("TextButton") and option.Name:match("Option_") then
-                  option.Visible = true
-                end
-              end
-            end
-    
-            local searchDropdown = function(text)
-              local options = DropdownModule:GetChildren()
-              for i=1, #options do
-                local option = options[i]
-                if text == "" then
-                  setAllVisible()
-                else
-                  if option:IsA("TextButton") and option.Name:match("Option_") then
-                    if option.Text:lower():match(text:lower()) then
-                      option.Visible = true
-                    else
-                      option.Visible = false
-                    end
-                  end
-                end
-              end
-            end
-    
-            local open = false
-            local ToggleDropVis = function()
-              open = not open
-              if open then setAllVisible() end
-              DropdownOpen.Text = (open and "-" or "+")
-              DropdownModule.Size = UDim2.new(0, 428, 0, (open and DropdownModuleL.AbsoluteContentSize.Y + 4 or 38))
-            end
-    
-            DropdownOpen.MouseButton1Click:Connect(ToggleDropVis)
-            DropdownText.Focused:Connect(function()
-              if open then return end
-              ToggleDropVis()
-            end)
-    
-            DropdownText:GetPropertyChangedSignal("Text"):Connect(function()
-              if not open then return end
-              searchDropdown(DropdownText.Text)
-            end)
-    
-            DropdownModuleL:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-              if not open then return end
-              DropdownModule.Size = UDim2.new(0, 428, 0, (DropdownModuleL.AbsoluteContentSize.Y + 4))
-            end)
-            
-            local funcs = {}
-            funcs.AddOption = function(self, option)
-              local Option = Instance.new("TextButton")
-              local OptionC = Instance.new("UICorner")     
-    
-              Option.Name = "Option_" .. option
-              Option.Parent = DropdownModule
-              Option.BackgroundColor3 = zyColor
-              Option.BorderSizePixel = 0
-              Option.Position = UDim2.new(0, 0, 0.328125, 0)
-              Option.Size = UDim2.new(0, 428, 0, 26)
-              Option.AutoButtonColor = false
-              Option.Font = Enum.Font.Gotham
-              Option.Text = option
-              Option.TextColor3 = ALcolor
-              Option.TextSize = 14.000
-              
-              OptionC.CornerRadius = UDim.new(0, 6)
-              OptionC.Name = "OptionC"
-              OptionC.Parent = Option
-    
-              Option.MouseButton1Click:Connect(function()
-                ToggleDropVis()
-                callback(Option.Text)
-                DropdownText.Text = Option.Text
-                library.flags[flag] = Option.Text
-              end)
-            end
-    
-            funcs.RemoveOption = function(self, option)
-              local option = DropdownModule:FindFirstChild("Option_" .. option)
-              if option then option:Destroy() end
-            end
-    
-            funcs.SetOptions = function(self, options)
-              for _, v in next, DropdownModule:GetChildren() do
-                if v.Name:match("Option_") then
-                  v:Destroy()
-                end
-              end
-              for _,v in next, options do
-                funcs:AddOption(v)
-              end
-            end
-    
-            funcs:SetOptions(options)
-    
-            return funcs
-          end
-          return section
-        end
-        return tab
-      end
-      return window
-    end
-return library
+            DropdownTop
