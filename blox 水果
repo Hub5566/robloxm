@@ -22,7 +22,7 @@ else
     warn("Your exploit does not support setfpscap.")
 end
 
-local WindUI = (loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua")))();
+local WindUI = (loadstring(game:HttpGet("https://github.com/Hub5566/robloxm/blob/main/UI%20%202")))();
 local Window = WindUI:CreateWindow({
     Title = "DYHUB",
     Icon = "rbxassetid://104487529937663",
