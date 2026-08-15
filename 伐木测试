@@ -1,13 +1,12 @@
--- 加载UI框架
+-- 加载UI框架（使用可靠链接）
 local WindUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Hub5566/robloxm/main/ui%20%201"))()
 if not WindUI then
-    print("❌ WindUI加载失败")
-    return
+    -- 备用链接
+    WindUI = loadstring(game:HttpGet("https://pastebin.com/raw/DW3eJwe6"))()
 end
 
--- 检查WindUI是否有CreateWindow方法
-if not WindUI.CreateWindow then
-    print("❌ WindUI.CreateWindow 不存在")
+if not WindUI then
+    print("❌ WindUI加载失败，请检查网络")
     return
 end
 
@@ -34,127 +33,6 @@ if not Window then
     return
 end
 
--- 检查Window是否有Tab方法
-if not Window.Tab then
-    print("❌ Window.Tab 不存在")
-    -- 尝试使用其他方法名
-    if Window.AddTab then
-        print("✅ 使用 Window.AddTab")
-        Window._tabMethod = "AddTab"
-    elseif Window.NewTab then
-        print("✅ 使用 Window.NewTab")
-        Window._tabMethod = "NewTab"
-    elseif Window.tab then
-        print("✅ 使用 Window.tab")
-        Window._tabMethod = "tab"
-    else
-        print("❌ 无法找到Tab方法，使用备用UI")
-        -- 创建备用简单GUI
-        local screenGui = Instance.new("ScreenGui")
-        screenGui.Name = "BaiScript"
-        screenGui.Parent = game.CoreGui
-        
-        local frame = Instance.new("Frame")
-        frame.Size = UDim2.new(0, 450, 0, 500)
-        frame.Position = UDim2.new(0.5, -225, 0.5, -250)
-        frame.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
-        frame.Parent = screenGui
-        Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 12)
-        
-        local title = Instance.new("TextLabel")
-        title.Size = UDim2.new(1, 0, 0, 40)
-        title.Position = UDim2.new(0, 0, 0, 10)
-        title.BackgroundTransparency = 1
-        title.Text = "白 - 伐木大亨2"
-        title.TextColor3 = Color3.fromRGB(255, 255, 255)
-        title.Font = Enum.Font.GothamBold
-        title.TextSize = 20
-        title.Parent = frame
-        
-        local closeBtn = Instance.new("TextButton")
-        closeBtn.Size = UDim2.new(0, 30, 0, 30)
-        closeBtn.Position = UDim2.new(1, -40, 0, 10)
-        closeBtn.BackgroundTransparency = 1
-        closeBtn.Text = "✕"
-        closeBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
-        closeBtn.Font = Enum.Font.GothamBold
-        closeBtn.TextSize = 18
-        closeBtn.Parent = frame
-        closeBtn.MouseButton1Click:Connect(function()
-            screenGui:Destroy()
-        end)
-        
-        local status = Instance.new("TextLabel")
-        status.Size = UDim2.new(1, -20, 0, 30)
-        status.Position = UDim2.new(0, 10, 0, 60)
-        status.BackgroundTransparency = 1
-        status.Text = "✅ 脚本加载成功！"
-        status.TextColor3 = Color3.fromRGB(0, 255, 100)
-        status.Font = Enum.Font.Gotham
-        status.TextSize = 16
-        status.Parent = frame
-        
-        local info = Instance.new("TextLabel")
-        info.Size = UDim2.new(1, -20, 0, 60)
-        info.Position = UDim2.new(0, 10, 0, 100)
-        info.BackgroundTransparency = 1
-        info.Text = "UI框架不兼容\n请使用其他脚本或更新框架"
-        info.TextColor3 = Color3.fromRGB(200, 200, 200)
-        info.Font = Enum.Font.Gotham
-        info.TextSize = 14
-        info.TextWrapped = true
-        info.Parent = frame
-        
-        -- 添加一些简单功能按钮
-        local function addButton(text, y, callback)
-            local btn = Instance.new("TextButton")
-            btn.Size = UDim2.new(0.9, 0, 0, 35)
-            btn.Position = UDim2.new(0.05, 0, 0, y)
-            btn.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
-            btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-            btn.Text = text
-            btn.Font = Enum.Font.Gotham
-            btn.TextSize = 14
-            btn.Parent = frame
-            Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
-            btn.MouseButton1Click:Connect(callback)
-            return btn
-        end
-        
-        -- 在备用UI中添加基础功能
-        local yPos = 160
-        addButton("自动砍树", yPos, function()
-            Notify("提示", "备用UI模式：自动砍树功能需要完整UI支持", 3)
-        end)
-        
-        addButton("带来树", yPos + 45, function()
-            Notify("提示", "备用UI模式：带来树功能需要完整UI支持", 3)
-        end)
-        
-        addButton("卖所有木头", yPos + 90, function()
-            Notify("提示", "备用UI模式：卖木头功能需要完整UI支持", 3)
-        end)
-        
-        addButton("安全自杀", yPos + 135, function()
-            if LP and LP.Character then
-                LP.Character.Head:Destroy()
-            end
-        end)
-        
-        return
-    end
-end
-
--- 定义Window的Tab方法（如果不存在则创建代理）
-if not Window.Tab then
-    Window.Tab = function(self, ...)
-        if self._tabMethod then
-            return self[self._tabMethod](self, ...)
-        end
-        error("Tab method not found")
-    end
-end
-
 -- ============================================================
 -- 基础变量
 -- ============================================================
@@ -164,7 +42,6 @@ local RS = game:GetService("ReplicatedStorage")
 local WS = game:GetService("Workspace")
 local UIS = game:GetService("UserInputService")
 local Mouse = LP:GetMouse()
-local TweenService = game:GetService("TweenService")
 
 -- ============================================================
 -- 通知函数
@@ -176,66 +53,6 @@ local function Notify(Title, Text, Duration)
         Duration = Duration or 3,
     })
 end
-
--- ============================================================
--- 配置表
--- ============================================================
-local Config = {
-    cuttreeselect = "Generic",
-    autofarm = false,
-    autofarm1 = false,
-    autosell = false,
-    autodrop = false,
-    autopick = false,
-    treecutset = nil,
-    farmLoop = nil,
-    sellLoop = nil,
-    moneyLoop = nil,
-    modTreeTarget = "Generic",
-    modTreeNewType = "Generic",
-    soltnumber = "1",
-    walkspeed = 16,
-    jumppower = 50,
-    gravity = 196.2,
-    noclip = false,
-    invisible = false,
-    fly = false,
-    saymege = "",
-    saymount = 1,
-    autosay = false,
-    moneyaoumt = 1,
-    moneytoplayername = "",
-    playernamedied = "",
-    cswjia = "",
-    zlwjia = "",
-    mtwjia = "",
-    zix = 1,
-    zlz = 3,
-    zlmt = nil,
-    shuzhe = false,
-    tchonmt = nil,
-    autobuystop = false,
-    autobuyamount = 1,
-    autobuyset = nil,
-    stopcar = false,
-    car = nil,
-    whthmose = false,
-    loaddupeaxewaittime = 3.1,
-    itemtoopen = "",
-    openItem = nil,
-    itemset = nil,
-    cskais = false,
-    xzemuban = false,
-    kuangxiu = nil,
-    dxmz = "",
-    awaysday = false,
-    awaysdnight = false,
-    nofog = false,
-    waterwalk = false,
-    modwood = false,
-    bringamount = 1,
-    bringtree = false,
-}
 
 -- ============================================================
 -- 树类型数据
@@ -300,16 +117,24 @@ local TeleportMap = {
 }
 
 -- ============================================================
--- 玩家列表
+-- 配置表
 -- ============================================================
-local PlayerList = {}
-local function RefreshPlayerList()
-    PlayerList = {}
-    for _, v in pairs(Players:GetPlayers()) do
-        table.insert(PlayerList, v.Name)
-    end
-end
-RefreshPlayerList()
+local Config = {
+    cuttreeselect = "Generic",
+    autofarm = false,
+    autofarm1 = false,
+    autosell = false,
+    treecutset = nil,
+    farmLoop = nil,
+    sellLoop = nil,
+    moneyLoop = nil,
+    modTreeTarget = "Generic",
+    modTreeNewType = "Generic",
+    soltnumber = "1",
+    cswjia = "",
+    itemset = nil,
+    bringamount = 1,
+}
 
 -- ============================================================
 -- 工具函数
@@ -429,21 +254,6 @@ local function tp(pos)
     end
 end
 
-local function droptool(Position)
-    local char = LP.Character
-    if char then
-        local tool = char:FindFirstChildOfClass("Tool")
-        if tool and tool:FindFirstChild("ToolName") then
-            RS.Interaction.ClientInteracted:FireServer(tool, "Drop tool", Position or char.Head.CFrame)
-        end
-    end
-    for _, v in pairs(LP.Backpack:GetChildren()) do
-        if v:IsA("Tool") and v:FindFirstChild("ToolName") then
-            RS.Interaction.ClientInteracted:FireServer(v, "Drop tool", Position or LP.Character.Head.CFrame)
-        end
-    end
-end
-
 local function carTeleport(cframe)
     if LP.Character then
         local humanoid = LP.Character:FindFirstChildOfClass("Humanoid")
@@ -459,98 +269,6 @@ local function carTeleport(cframe)
             end)
         end
     end
-end
-
-local function getPlanks()
-    local plankList = {}
-    for _, plank in pairs(WS.PlayerModels:GetChildren()) do
-        if plank:FindFirstChild("WoodSection") and plank:FindFirstChild("Owner") and plank.Owner.Value == LP then
-            table.insert(plankList, plank)
-        end
-    end
-    return plankList
-end
-
-local function getPosition()
-    if LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then
-        return LP.Character.HumanoidRootPart.Position
-    end
-    return Vector3.new(0, 0, 0)
-end
-
--- ============================================================
--- 物品传送功能（框选+传送）
--- ============================================================
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "ItemSelectGui"
-ScreenGui.Parent = game.CoreGui
-ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-
-local Frame = Instance.new("Frame")
-Frame.Parent = ScreenGui
-Frame.BackgroundColor3 = Color3.fromRGB(4, 0, 255)
-Frame.BackgroundTransparency = 0.8
-Frame.BorderColor3 = Color3.new(0.09, 0.137, 0.776)
-Frame.BorderSizePixel = 2
-Frame.Position = UDim2.new(0, 0, 0, 0)
-Frame.Size = UDim2.new(0, 0, 0, 0)
-Frame.Visible = false
-
-function is_in_frame(screenpos, frame)
-    local xPos = frame.AbsolutePosition.X
-    local yPos = frame.AbsolutePosition.Y
-    local xSize = frame.AbsoluteSize.X
-    local ySize = frame.AbsoluteSize.Y
-    
-    local check1 = screenpos.X >= xPos and screenpos.X <= xPos + xSize
-    local check3 = screenpos.Y >= yPos and screenpos.Y <= yPos + ySize
-    local check2 = screenpos.X <= xPos and screenpos.X >= xPos + xSize
-    local check4 = screenpos.Y <= yPos and screenpos.Y >= yPos + ySize
-    
-    return (check1 and check3) or (check2 and check3) or (check1 and check4) or (check2 and check4)
-end
-
-local function startItemTransfer()
-    if Config.itemset == nil then
-        Notify("错误", "请先设置传送点", 4)
-        return
-    end
-    Config.cskais = true
-    local OldPos = LP.Character.HumanoidRootPart.CFrame
-    
-    for _, v in pairs(WS.PlayerModels:GetChildren()) do
-        if Config.cskais == false then break end
-        if v:FindFirstChild("Owner") and tostring(v.Owner.Value) == Config.cswjia then
-            if v:FindFirstChild("SelectionBox") then
-                if v:FindFirstChild("Main") then
-                    if (LP.Character.HumanoidRootPart.CFrame.p - v.Main.CFrame.p).Magnitude > 5 then
-                        tp(v.Main.CFrame + Vector3.new(4, 0, 4))
-                    end
-                    for i = 1, 30 do
-                        if Config.cskais == false then break end
-                        RS.Interaction.ClientIsDragging:FireServer(v)
-                        v:PivotTo(Config.itemset)
-                        RS.Interaction.ClientIsDragging:FireServer(v)
-                        task.wait()
-                    end
-                    v.SelectionBox:Destroy()
-                elseif v:FindFirstChild("WoodSection") then
-                    tp(v.WoodSection.CFrame + Vector3.new(4, 0, 4))
-                    for i = 1, 70 do
-                        if Config.cskais == false then break end
-                        RS.Interaction.ClientIsDragging:FireServer(v)
-                        v.WoodSection.CFrame = Config.itemset * CFrame.Angles(math.rad(90), 0, 90)
-                        RS.Interaction.ClientIsDragging:FireServer(v)
-                        task.wait()
-                    end
-                    v.SelectionBox:Destroy()
-                end
-            end
-        end
-    end
-    tp(OldPos)
-    Config.cskais = false
-    Notify("完成", "已传送所有选中物品", 2)
 end
 
 -- ============================================================
@@ -786,165 +504,903 @@ local function batchModifyTrees(targetType, newType)
 end
 
 -- ============================================================
--- 环境功能
+-- 循环控制
 -- ============================================================
-local function toggleDay(state)
-    Config.awaysday = state
-    if state then
-        task.spawn(function()
-            while Config.awaysday do
-                game:GetService("Lighting").TimeOfDay = "12:00:00"
-                task.wait(0.1)
+local function startFarm()
+    if Config.farmLoop then return end
+    Config.farmLoop = task.spawn(function()
+        while Config.autofarm do
+            bringTree(Config.cuttreeselect)
+            task.wait(0.5)
+        end
+    end)
+end
+
+local function stopFarm()
+    Config.autofarm = false
+    if Config.farmLoop then
+        task.cancel(Config.farmLoop)
+        Config.farmLoop = nil
+    end
+end
+
+local function startSell()
+    if Config.sellLoop then return end
+    Config.sellLoop = task.spawn(function()
+        while Config.autosell do
+            sellWood()
+            task.wait(2)
+        end
+    end)
+end
+
+local function stopSell()
+    Config.autosell = false
+    if Config.sellLoop then
+        task.cancel(Config.sellLoop)
+        Config.sellLoop = nil
+    end
+end
+
+local function startMoney()
+    if Config.moneyLoop then return end
+    Config.autofarm = true
+    Config.autosell = true
+    startFarm()
+    startSell()
+end
+
+local function stopMoney()
+    Config.autofarm1 = false
+    stopFarm()
+    stopSell()
+end
+
+-- ============================================================
+-- 创建UI标签页
+-- ============================================================
+
+-- ===== 砍树标签页 =====
+local MainTab = Window:Tab("砍树")
+
+local TreeSection = MainTab:Section("选择树类型")
+TreeSection:Dropdown({
+    Title = "选择树",
+    Values = TreeOptions,
+    Value = "普通树",
+    Callback = function(value)
+        Config.cuttreeselect = TreeMap[value] or "Generic"
+        Notify("选择", "已选择: " .. value, 2)
+    end
+})
+
+local ControlSection = MainTab:Section("砍树控制")
+ControlSection:Toggle({
+    Title = "自动砍树",
+    Desc = "自动砍伐选中的树",
+    Value = false,
+    Callback = function(state)
+        if state then
+            if not LP.Character then
+                Notify("错误", "角色不存在", 3)
+                return
             end
-        end)
-    end
-end
-
-local function toggleNight(state)
-    Config.awaysdnight = state
-    if state then
-        task.spawn(function()
-            while Config.awaysdnight do
-                game:GetService("Lighting").TimeOfDay = "02:00:00"
-                task.wait(0.1)
-            end
-        end)
-    end
-end
-
-local function toggleFog(state)
-    Config.nofog = state
-    if state then
-        game:GetService("Lighting").FogEnd = 1000000
-    else
-        game:GetService("Lighting").FogEnd = 10000
-    end
-end
-
-local function toggleWaterWalk(state)
-    Config.waterwalk = state
-    for _, v in pairs(WS.Water:GetChildren()) do
-        if v:IsA("BasePart") then
-            v.CanCollide = state
+            Config.autofarm = true
+            Config.treecutset = LP.Character.HumanoidRootPart.CFrame
+            Notify("启动", "自动砍树已开启", 2)
+            startFarm()
+        else
+            stopFarm()
+            Notify("停止", "自动砍树已关闭", 2)
         end
     end
-    for _, v in pairs(WS.Bridge.VerticalLiftBridge.WaterModel:GetChildren()) do
-        if v:IsA("BasePart") then
-            v.CanCollide = state
+})
+
+ControlSection:Button({
+    Title = "带来树",
+    Desc = "把树带到你当前位置",
+    Callback = function()
+        if not LP.Character then
+            Notify("错误", "角色不存在", 3)
+            return
+        end
+        Config.treecutset = LP.Character.HumanoidRootPart.CFrame
+        bringTree(Config.cuttreeselect)
+    end
+})
+
+ControlSection:Input({
+    Title = "带来树数量",
+    Desc = "输入要带来的树数量",
+    Placeholder = "输入数字",
+    Callback = function(value)
+        Config.bringamount = tonumber(value) or 1
+    end
+})
+
+ControlSection:Button({
+    Title = "带来多棵树",
+    Desc = "按数量带来树",
+    Callback = function()
+        if not LP.Character then
+            Notify("错误", "角色不存在", 3)
+            return
+        end
+        bringTreeWithCount(Config.cuttreeselect, Config.bringamount)
+    end
+})
+
+ControlSection:Button({
+    Title = "停止砍树",
+    Desc = "立即停止所有砍树操作",
+    Callback = function()
+        stopFarm()
+        stopMoney()
+        Config.bringtree = false
+        Notify("停止", "已停止所有砍树操作", 2)
+    end
+})
+
+-- ===== 赚钱标签页 =====
+local MoneyTab = Window:Tab("赚钱")
+local MoneySection = MoneyTab:Section("自动赚钱")
+
+MoneySection:Toggle({
+    Title = "自动赚钱",
+    Desc = "砍树并自动卖木头",
+    Value = false,
+    Callback = function(state)
+        if state then
+            Config.autofarm1 = true
+            Notify("启动", "自动赚钱已开启", 2)
+            startMoney()
+        else
+            stopMoney()
+            Notify("停止", "自动赚钱已关闭", 2)
         end
     end
-end
+})
 
-local function toggleLava(state)
-    for _, v in pairs(WS.Region_Volcano:GetDescendants()) do
-        if v.Name == "Lava" then
-            for _, k in pairs(v:GetChildren()) do
-                if k:IsA("BasePart") then
-                    k.Transparency = state and 1 or 0
+-- ===== 卖木头标签页 =====
+local SellTab = Window:Tab("卖木头")
+local SellSection = SellTab:Section("木头管理")
+
+SellSection:Button({
+    Title = "卖所有木板",
+    Desc = "卖掉你所有的木板",
+    Callback = function()
+        sellWood()
+        Notify("完成", "已卖出所有木板", 2)
+    end
+})
+
+SellSection:Button({
+    Title = "卖所有原木",
+    Desc = "卖掉你所有的原木",
+    Callback = function()
+        sellwood()
+        Notify("完成", "已卖出所有原木", 2)
+    end
+})
+
+SellSection:Toggle({
+    Title = "自动卖木板",
+    Desc = "自动卖掉所有木板",
+    Value = false,
+    Callback = function(state)
+        if state then
+            Config.autosell = true
+            Notify("启动", "自动卖木板已开启", 2)
+            startSell()
+        else
+            stopSell()
+            Notify("停止", "自动卖木板已关闭", 2)
+        end
+    end
+})
+
+SellSection:Button({
+    Title = "传送木头到卖点",
+    Desc = "把木头传送到锯木机",
+    Callback = function()
+        if not LP.Character then return end
+        local oldPos = LP.Character.HumanoidRootPart.CFrame
+        for _, v in pairs(WS.LogModels:GetChildren()) do
+            if v:FindFirstChild("Owner") and v.Owner.Value == LP then
+                if not v.PrimaryPart then
+                    v.PrimaryPart = v:FindFirstChild("WoodSection")
+                end
+                spawn(function()
+                    for i = 1, 50 do
+                        RS.Interaction.ClientIsDragging:FireServer(v)
+                        task.wait()
+                    end
+                end)
+                for i = 1, 50 do
+                    task.wait()
+                    v:PivotTo(oldPos)
+                end
+            end
+        end
+        Notify("完成", "已传送所有木头", 2)
+    end
+})
+
+-- ===== 修改树标签页 =====
+local ModTreeTab = Window:Tab("修改树")
+
+local ModTargetSection = ModTreeTab:Section("选择要修改的树")
+ModTargetSection:Dropdown({
+    Title = "目标树类型",
+    Values = TreeOptions,
+    Value = "普通树",
+    Callback = function(value)
+        Config.modTreeTarget = TreeMap[value] or "Generic"
+        Notify("选择", "目标树: " .. value, 2)
+    end
+})
+
+local NewTypeSection = ModTreeTab:Section("修改为")
+NewTypeSection:Dropdown({
+    Title = "新树类型",
+    Values = TreeOptions,
+    Value = "普通树",
+    Callback = function(value)
+        Config.modTreeNewType = TreeMap[value] or "Generic"
+        Notify("选择", "新类型: " .. value, 2)
+    end
+})
+
+local ModActionSection = ModTreeTab:Section("操作")
+ModActionSection:Button({
+    Title = "单棵修改",
+    Desc = "砍一棵目标树并修改类型",
+    Callback = function()
+        if not LP.Character then
+            Notify("错误", "角色不存在", 3)
+            return
+        end
+        Config.treecutset = LP.Character.HumanoidRootPart.CFrame
+        Notify("开始", "正在修改树类型...", 2)
+        modifyTreeType(Config.modTreeTarget, Config.modTreeNewType)
+    end
+})
+
+ModActionSection:Button({
+    Title = "批量修改",
+    Desc = "修改所有目标树类型（不砍树）",
+    Callback = function()
+        if not LP.Character then
+            Notify("错误", "角色不存在", 3)
+            return
+        end
+        local count = batchModifyTrees(Config.modTreeTarget, Config.modTreeNewType)
+        if count > 0 then
+            Notify("完成", "已修改 " .. count .. " 棵树", 3)
+        else
+            Notify("提示", "没有找到目标树", 3)
+        end
+    end
+})
+
+ModActionSection:Button({
+    Title = "查看树木统计",
+    Desc = "显示当前地图所有树类型数量",
+    Callback = function()
+        local trees = getAllTrees()
+        local stats = {}
+        for _, tree in pairs(trees) do
+            local treeClass = tree.TreeClass.Value
+            stats[treeClass] = (stats[treeClass] or 0) + 1
+        end
+        
+        local msg = "树木统计:\n"
+        local total = 0
+        for k, v in pairs(stats) do
+            local displayName = k
+            for name, id in pairs(TreeMap) do
+                if id == k then
+                    displayName = name
+                    break
+                end
+            end
+            msg = msg .. displayName .. ": " .. v .. "棵\n"
+            total = total + v
+        end
+        msg = msg .. "总计: " .. total .. "棵"
+        Notify("统计", msg, 5)
+    end
+})
+
+-- ===== 传送标签页 =====
+local TeleportTab = Window:Tab("传送")
+
+local TeleportSection = TeleportTab:Section("传送位置")
+TeleportSection:Dropdown({
+    Title = "选择传送位置",
+    Values = TeleportOptions,
+    Value = "出生点",
+    Callback = function(value)
+        local pos = TeleportMap[value]
+        if pos then
+            tp(pos)
+            Notify("传送", "已传送到: " .. value, 2)
+        end
+    end
+})
+
+TeleportSection:Button({
+    Title = "回家",
+    Desc = "传送到你的基地",
+    Callback = function()
+        for _, v in pairs(WS.Properties:GetChildren()) do
+            if v:FindFirstChild("Owner") and v.Owner.Value == LP then
+                if v:FindFirstChild("OriginSquare") then
+                    tp(v.OriginSquare.CFrame + Vector3.new(0, 10, 0))
+                    Notify("传送", "已回家", 2)
+                    return
+                end
+            end
+        end
+        Notify("错误", "没有找到你的基地", 3)
+    end
+})
+
+-- ===== 汽车传送标签页 =====
+local CarTab = Window:Tab("汽车传送")
+
+local CarSection = CarTab:Section("汽车传送位置")
+CarSection:Dropdown({
+    Title = "选择传送位置",
+    Values = TeleportOptions,
+    Value = "出生点",
+    Callback = function(value)
+        local pos = TeleportMap[value]
+        if pos then
+            carTeleport(pos)
+            Notify("传送", "汽车已传送到: " .. value, 2)
+        end
+    end
+})
+
+CarSection:Button({
+    Title = "汽车回家",
+    Desc = "汽车传送到你的基地",
+    Callback = function()
+        for _, v in pairs(WS.Properties:GetChildren()) do
+            if v:FindFirstChild("Owner") and v.Owner.Value == LP then
+                if v:FindFirstChild("OriginSquare") then
+                    carTeleport(v.OriginSquare.CFrame + Vector3.new(0, 10, 0))
+                    Notify("传送", "汽车已回家", 2)
+                    return
+                end
+            end
+        end
+        Notify("错误", "没有找到你的基地", 3)
+    end
+})
+
+-- ===== 玩家标签页 =====
+local PlayerTab = Window:Tab("玩家")
+
+local PlayerSection = PlayerTab:Section("玩家设置")
+
+PlayerSection:Slider({
+    Title = "移动速度",
+    Desc = "调整角色移动速度",
+    Min = 16,
+    Max = 600,
+    Default = 16,
+    Callback = function(value)
+        if LP.Character and LP.Character:FindFirstChild("Humanoid") then
+            LP.Character.Humanoid.WalkSpeed = value
+        end
+    end
+})
+
+PlayerSection:Slider({
+    Title = "跳跃力",
+    Desc = "调整角色跳跃力",
+    Min = 50,
+    Max = 600,
+    Default = 50,
+    Callback = function(value)
+        if LP.Character and LP.Character:FindFirstChild("Humanoid") then
+            LP.Character.Humanoid.JumpPower = value
+        end
+    end
+})
+
+PlayerSection:Slider({
+    Title = "重力",
+    Desc = "调整世界重力",
+    Min = -196,
+    Max = 600,
+    Default = 196,
+    Callback = function(value)
+        WS.Gravity = value
+    end
+})
+
+PlayerSection:Button({
+    Title = "安全自杀",
+    Desc = "快速重生",
+    Callback = function()
+        if LP.Character then
+            LP.Character.Head:Destroy()
+            Notify("重生", "已重生", 2)
+        end
+    end
+})
+
+-- ===== 物品传送标签页 =====
+local ItemTab = Window:Tab("物品传送")
+
+local ItemSection = ItemTab:Section("物品传送设置")
+
+ItemSection:Input({
+    Title = "目标玩家名称",
+    Desc = "输入要传送物品的玩家名",
+    Placeholder = "输入玩家名",
+    Callback = function(value)
+        Config.cswjia = value
+        Notify("设置", "目标玩家: " .. value, 2)
+    end
+})
+
+ItemSection:Button({
+    Title = "设置传送点",
+    Desc = "在当前位置设置传送点",
+    Callback = function()
+        if not LP.Character then
+            Notify("错误", "角色不存在", 3)
+            return
+        end
+        pcall(function()
+            if WS:FindFirstChild("baiBasedropCord") then
+                WS.baiBasedropCord:Destroy()
+            end
+        end)
+        local cord = Instance.new("Part", WS)
+        cord.Name = "baiBasedropCord"
+        cord.CanCollide = false
+        cord.Anchored = true
+        cord.Shape = Enum.PartType.Ball
+        cord.Color = Color3.fromRGB(0, 217, 255)
+        cord.Size = Vector3.new(2, 2, 2)
+        cord.CFrame = LP.Character.HumanoidRootPart.CFrame
+        cord.Material = Enum.Material.Marble
+        Config.itemset = LP.Character.HumanoidRootPart.CFrame
+        Notify("完成", "已设置传送点", 2)
+    end
+})
+
+ItemSection:Button({
+    Title = "删除传送点",
+    Desc = "删除传送点",
+    Callback = function()
+        pcall(function()
+            if WS:FindFirstChild("baiBasedropCord") then
+                WS.baiBasedropCord:Destroy()
+            end
+            Config.itemset = nil
+        end)
+        Notify("完成", "已删除传送点", 2)
+    end
+})
+
+ItemSection:Button({
+    Title = "获得物品传送工具",
+    Desc = "点击物品传送到传送点",
+    Callback = function()
+        if Config.itemset == nil then
+            Notify("错误", "请先设置传送点", 3)
+            return
+        end
+        if Config.cswjia == "" then
+            Notify("错误", "请先输入目标玩家名称", 3)
+            return
+        end
+        local tool = Instance.new("Tool", LP.Backpack)
+        tool.Name = "点击传送物品"
+        tool.RequiresHandle = false
+        local mouse = LP:GetMouse()
+        tool.Activated:Connect(function()
+            local target = mouse.Target
+            if not target then return end
+            local item = target.Parent
+            if item:FindFirstChild("Owner") and tostring(item.Owner.Value) == Config.cswjia then
+                if item:FindFirstChild("Main") then
+                    if (LP.Character.HumanoidRootPart.CFrame.p - item.Main.CFrame.p).Magnitude > 5 then
+                        tp(item.Main.CFrame + Vector3.new(4, 0, 4))
+                    end
+                    for i = 1, 30 do
+                        RS.Interaction.ClientIsDragging:FireServer(item)
+                        item.Main.CFrame = Config.itemset
+                        RS.Interaction.ClientIsDragging:FireServer(item)
+                        task.wait()
+                    end
+                    Notify("完成", "已传送物品", 2)
+                elseif item:FindFirstChild("WoodSection") then
+                    tp(item.WoodSection.CFrame + Vector3.new(4, 0, 4))
+                    for i = 1, 30 do
+                        RS.Interaction.ClientIsDragging:FireServer(item)
+                        item.WoodSection.CFrame = Config.itemset
+                        RS.Interaction.ClientIsDragging:FireServer(item)
+                        task.wait()
+                    end
+                    Notify("完成", "已传送物品", 2)
+                else
+                    Notify("错误", "无法识别该物品", 2)
+                end
+            else
+                Notify("错误", "该物品不属于目标玩家", 2)
+            end
+        end)
+        Notify("工具", "已获得物品传送工具（点击物品传送）", 2)
+    end
+})
+
+-- ===== 存档标签页 =====
+local SaveTab = Window:Tab("存档")
+
+local SaveSection = SaveTab:Section("存档管理")
+
+SaveSection:Input({
+    Title = "存档编号",
+    Desc = "输入存档编号 (1-6)",
+    Placeholder = "输入数字",
+    Callback = function(value)
+        Config.soltnumber = value
+    end
+})
+
+SaveSection:Button({
+    Title = "加载存档",
+    Desc = "加载指定存档",
+    Callback = function()
+        local slot = tonumber(Config.soltnumber)
+        if slot and slot >= 1 and slot <= 6 then
+            Notify("加载", "正在加载存档 " .. slot, 2)
+            RS.LoadSaveRequests.RequestLoad:InvokeServer(slot)
+        else
+            Notify("错误", "请输入有效的存档编号 (1-6)", 3)
+        end
+    end
+})
+
+SaveSection:Button({
+    Title = "一键复制",
+    Desc = "复制当前存档",
+    Callback = function()
+        local slot = tonumber(Config.soltnumber)
+        if slot and slot >= 1 and slot <= 6 then
+            Notify("复制", "正在复制存档 " .. slot, 2)
+            RS.LoadSaveRequests.RequestLoad:InvokeServer(slot)
+            task.wait(1)
+            game:Shutdown()
+        else
+            Notify("错误", "请输入有效的存档编号 (1-6)", 3)
+        end
+    end
+})
+
+-- ===== 环境标签页 =====
+local EnvTab = Window:Tab("环境")
+
+local EnvSection = EnvTab:Section("环境设置")
+
+EnvSection:Toggle({
+    Title = "终日白天",
+    Desc = "保持白天",
+    Value = false,
+    Callback = function(state)
+        if state then
+            task.spawn(function()
+                while state do
+                    game:GetService("Lighting").TimeOfDay = "12:00:00"
+                    task.wait(0.1)
+                end
+            end)
+        end
+    end
+})
+
+EnvSection:Toggle({
+    Title = "终日黑夜",
+    Desc = "保持黑夜",
+    Value = false,
+    Callback = function(state)
+        if state then
+            task.spawn(function()
+                while state do
+                    game:GetService("Lighting").TimeOfDay = "02:00:00"
+                    task.wait(0.1)
+                end
+            end)
+        end
+    end
+})
+
+EnvSection:Toggle({
+    Title = "消除阴影",
+    Desc = "关闭全局阴影",
+    Value = false,
+    Callback = function(state)
+        game:GetService("Lighting").GlobalShadows = not state
+    end
+})
+
+EnvSection:Toggle({
+    Title = "去除雾",
+    Desc = "消除雾气",
+    Value = false,
+    Callback = function(state)
+        if state then
+            game:GetService("Lighting").FogEnd = 1000000
+        else
+            game:GetService("Lighting").FogEnd = 10000
+        end
+    end
+})
+
+EnvSection:Toggle({
+    Title = "水上行走",
+    Desc = "可以在水面上行走",
+    Value = false,
+    Callback = function(state)
+        for _, v in pairs(WS.Water:GetChildren()) do
+            if v:IsA("BasePart") then
+                v.CanCollide = state
+            end
+        end
+        for _, v in pairs(WS.Bridge.VerticalLiftBridge.WaterModel:GetChildren()) do
+            if v:IsA("BasePart") then
+                v.CanCollide = state
+            end
+        end
+    end
+})
+
+EnvSection:Toggle({
+    Title = "删除岩浆",
+    Desc = "隐藏岩浆",
+    Value = false,
+    Callback = function(state)
+        for _, v in pairs(WS.Region_Volcano:GetDescendants()) do
+            if v.Name == "Lava" then
+                for _, k in pairs(v:GetChildren()) do
+                    if k:IsA("BasePart") then
+                        k.Transparency = state and 1 or 0
+                    end
                 end
             end
         end
     end
-end
+})
 
-local function toggleWater(state)
-    for _, v in pairs(WS.Water:GetChildren()) do
-        if v.Name == "Water" and v:IsA("BasePart") then
-            v.Transparency = state and 1 or 0
-        end
-    end
-end
-
-local function toggleBridge(state)
-    for _, v in pairs(WS.Bridge.VerticalLiftBridge.Lift:GetChildren()) do
-        if state then
-            v.CFrame = v.CFrame + Vector3.new(0, -26, 0)
-        else
-            v.CFrame = v.CFrame + Vector3.new(0, 26, 0)
-        end
-    end
-end
-
-local function applyChristmasTheme()
-    for _, v in pairs(WS:GetDescendants()) do
-        if v.Name == "Ground" or v.Name == "Sand" then
-            v.BrickColor = BrickColor.new("White")
-            v.Material = Enum.Material.Sand
-        end
-        if v.Name == "Slate" then
-            v.BrickColor = BrickColor.new("White")
-        end
-        if v.Name == "LeafPart" then
-            v.BrickColor = BrickColor.new("White")
-            v.Material = Enum.Material.Sand
-        end
-    end
-    Notify("完成", "已切换到圣诞节地图", 2)
-end
-
-local function applyAutumnTheme()
-    for _, v in pairs(WS:GetDescendants()) do
-        if v.Name == "Ground" or v.Name == "Sand" then
-            v.BrickColor = BrickColor.new("Burnt Sienna")
-            v.Material = Enum.Material.Sand
-        end
-        if v.Name == "Slate" then
-            v.BrickColor = BrickColor.new("Burnt Sienna")
-        end
-        if v.Name == "LeafPart" then
-            v.BrickColor = BrickColor.new("Burnt Sienna")
-            v.Material = Enum.Material.Sand
-        end
-    end
-    Notify("完成", "已切换到秋天地图", 2)
-end
-
--- ============================================================
--- 飞行功能
--- ============================================================
-local flyConnection = nil
-local flyBV = nil
-local flyBG = nil
-
-local function toggleFly(state)
-    if state then
-        if LP.Character then
-            local hrp = LP.Character:FindFirstChild("HumanoidRootPart")
-            if hrp then
-                flyBV = Instance.new("BodyVelocity", hrp)
-                flyBV.MaxForce = Vector3.new(1, 1, 1) * 9e9
-                flyBV.Velocity = Vector3.new(0, 0, 0)
-                flyBG = Instance.new("BodyGyro", hrp)
-                flyBG.MaxTorque = Vector3.new(1, 1, 1) * 9e9
-                flyBG.P = 5000
-                flyBG.D = 500
-                
-                flyConnection = game:GetService("RunService").RenderStepped:Connect(function()
-                    if LP.Character and flyBV then
-                        local cam = WS.CurrentCamera
-                        local direction = Vector3.new(0, 0, 0)
-                        if UIS:IsKeyDown(Enum.KeyCode.W) then direction = direction + cam.CFrame.LookVector end
-                        if UIS:IsKeyDown(Enum.KeyCode.S) then direction = direction - cam.CFrame.LookVector end
-                        if UIS:IsKeyDown(Enum.KeyCode.A) then direction = direction - cam.CFrame.RightVector end
-                        if UIS:IsKeyDown(Enum.KeyCode.D) then direction = direction + cam.CFrame.RightVector end
-                        if UIS:IsKeyDown(Enum.KeyCode.Space) then direction = direction + Vector3.new(0, 1, 0) end
-                        if UIS:IsKeyDown(Enum.KeyCode.LeftShift) then direction = direction - Vector3.new(0, 1, 0) end
-                        flyBV.Velocity = direction * 50
-                        flyBG.CFrame = cam.CFrame
-                    end
-                end)
+EnvSection:Toggle({
+    Title = "删除水",
+    Desc = "隐藏水",
+    Value = false,
+    Callback = function(state)
+        for _, v in pairs(WS.Water:GetChildren()) do
+            if v.Name == "Water" and v:IsA("BasePart") then
+                v.Transparency = state and 1 or 0
             end
         end
-    else
-        if flyConnection then
-            flyConnection:Disconnect()
-            flyConnection = nil
+    end
+})
+
+EnvSection:Toggle({
+    Title = "放下桥",
+    Desc = "放下/升起桥",
+    Value = false,
+    Callback = function(state)
+        for _, v in pairs(WS.Bridge.VerticalLiftBridge.Lift:GetChildren()) do
+            if state then
+                v.CFrame = v.CFrame + Vector3.new(0, -26, 0)
+            else
+                v.CFrame = v.CFrame + Vector3.new(0, 26, 0)
+            end
         end
-        if flyBV then
-            flyBV:Destroy()
-            flyBV = nil
+    end
+})
+
+EnvSection:Button({
+    Title = "圣诞节地图",
+    Desc = "切换到圣诞节主题",
+    Callback = function()
+        for _, v in pairs(WS:GetDescendants()) do
+            if v.Name == "Ground" or v.Name == "Sand" then
+                v.BrickColor = BrickColor.new("White")
+                v.Material = Enum.Material.Sand
+            end
+            if v.Name == "Slate" then
+                v.BrickColor = BrickColor.new("White")
+            end
+            if v.Name == "LeafPart" then
+                v.BrickColor = BrickColor.new("White")
+                v.Material = Enum.Material.Sand
+            end
         end
-        if flyBG then
-            flyBG:Destroy()
-            flyBG = nil
+        Notify("完成", "已切换到圣诞节地图", 2)
+    end
+})
+
+EnvSection:Button({
+    Title = "秋天地图",
+    Desc = "切换到秋天主题",
+    Callback = function()
+        for _, v in pairs(WS:GetDescendants()) do
+            if v.Name == "Ground" or v.Name == "Sand" then
+                v.BrickColor = BrickColor.new("Burnt Sienna")
+                v.Material = Enum.Material.Sand
+            end
+            if v.Name == "Slate" then
+                v.BrickColor = BrickColor.new("Burnt Sienna")
+            end
+            if v.Name == "LeafPart" then
+                v.BrickColor = BrickColor.new("Burnt Sienna")
+                v.Material = Enum.Material.Sand
+            end
         end
+        Notify("完成", "已切换到秋天地图", 2)
+    end
+})
+
+EnvSection:Button({
+    Title = "查看游戏时间",
+    Desc = "显示当前游戏时间",
+    Callback = function()
+        Notify("游戏时间", tostring(game.Lighting.TimeOfDay), 3)
+    end
+})
+
+EnvSection:Input({
+    Title = "自定义亮度",
+    Desc = "输入亮度值 (0-100)",
+    Placeholder = "输入数字",
+    Callback = function(value)
+        local brightness = tonumber(value) or 10
+        game:GetService("Lighting").Brightness = brightness / 10
+        Notify("完成", "亮度已设置为 " .. brightness / 10, 2)
+    end
+})
+
+-- ===== 工具标签页 =====
+local ToolTab = Window:Tab("工具")
+
+local ToolSection = ToolTab:Section("辅助工具")
+
+ToolSection:Button({
+    Title = "重置速度",
+    Desc = "重置移动速度和跳跃力到默认值",
+    Callback = function()
+        if LP.Character and LP.Character:FindFirstChild("Humanoid") then
+            LP.Character.Humanoid.WalkSpeed = 16
+            LP.Character.Humanoid.JumpPower = 50
+            Notify("重置", "速度已重置", 2)
+        end
+    end
+})
+
+ToolSection:Button({
+    Title = "解锁最大焦距",
+    Desc = "解锁相机最大焦距限制",
+    Callback = function()
+        LP.CameraMaxZoomDistance = 9e9
+        Notify("完成", "已解锁最大焦距", 2)
+    end
+})
+
+ToolSection:Button({
+    Title = "获取点击传送工具",
+    Desc = "获得一个点击传送的工具",
+    Callback = function()
+        local tool = Instance.new("Tool")
+        tool.RequiresHandle = false
+        tool.Name = "点击传送"
+        local mouse = LP:GetMouse()
+        tool.Activated:Connect(function()
+            local pos = mouse.Hit + Vector3.new(0, 2.5, 0)
+            tp(CFrame.new(pos.X, pos.Y, pos.Z))
+        end)
+        tool.Parent = LP.Backpack
+        Notify("工具", "已获得点击传送工具", 2)
+    end
+})
+
+ToolSection:Button({
+    Title = "重进服务器",
+    Desc = "重新进入服务器",
+    Callback = function()
+        game:GetService("TeleportService"):Teleport(13822889)
+    end
+})
+
+-- ===== 娱乐标签页 =====
+local FunTab = Window:Tab("娱乐")
+
+local FunSection = FunTab:Section("娱乐功能")
+
+FunSection:Button({
+    Title = "安全自杀",
+    Desc = "快速重生",
+    Callback = function()
+        if LP.Character then
+            LP.Character.Head:Destroy()
+            Notify("重生", "已重生", 2)
+        end
+    end
+})
+
+FunSection:Button({
+    Title = "拿出可口可乐",
+    Desc = "拿出可口可乐道具",
+    Callback = function()
+        loadstring(game:HttpGet('https://pastebin.com/raw/BEgB0gEJ', true))()
+    end
+})
+
+FunSection:Button({
+    Title = "变成警察",
+    Desc = "变成警察角色",
+    Callback = function()
+        loadstring(game:HttpGet('https://pastebin.com/raw/8wB54iNk', true))()
+    end
+})
+
+FunSection:Button({
+    Title = "出现悬浮板",
+    Desc = "召唤悬浮板",
+    Callback = function()
+        loadstring(game:HttpGet('https://pastebin.com/raw/MrfVCM9y', true))()
+    end
+})
+
+FunSection:Button({
+    Title = "托马斯小火车",
+    Desc = "变成托马斯小火车",
+    Callback = function()
+        loadstring(game:HttpGet('http://pastebin.com/raw/tMr759X7', true))()
+    end
+})
+
+FunSection:Button({
+    Title = "圆球",
+    Desc = "变成圆球",
+    Callback = function()
+        loadstring(game:HttpGet('https://pastebin.com/raw/ZFSTSi9B', true))()
+    end
+})
+
+FunSection:Button({
+    Title = "喷漆",
+    Desc = "喷漆效果",
+    Callback = function()
+        loadstring(game:HttpGet('http://pastebin.com/raw/raYkCjyy', true))()
+    end
+})
+
+FunSection:Button({
+    Title = "一键删除所有树",
+    Desc = "删除地图上所有树（慎用）",
+    Callback = function()
+        local count = 0
+        for _, region in pairs(WS:GetChildren()) do
+            if region.Name == "TreeRegion" then
+                for _, tree in pairs(region:GetChildren()) do
+                    if tree:FindFirstChild("WoodSection") then
+                        RS.Interaction.DestroyStructure:FireServer(tree)
+                        count = count + 1
+                        task.wait(0.05)
+                    end
+                end
+            end
+        end
+        Notify("完成", "已删除 " .. count .. " 棵树", 3)
+    end
+})
+
+print("✅ 脚本加载完成！")
