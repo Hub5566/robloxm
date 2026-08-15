@@ -1,686 +1,950 @@
--- 在物品传送标签页添加批量选择功能
--- 找到 ItemSection 部分，添加以下代码
+-- 加载UI框架
+local WindUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Hub5566/robloxm/main/ui%20%201"))()
+if not WindUI then
+    print("❌ WindUI加载失败")
+    return
+end
 
--- ===== 物品传送标签页（完整版） =====
-local ItemTab = Window:Tab({ Title = "物品传送" })
+-- 检查WindUI是否有CreateWindow方法
+if not WindUI.CreateWindow then
+    print("❌ WindUI.CreateWindow 不存在")
+    return
+end
 
-local ItemSection = ItemTab:Section({ Title = "物品传送设置" })
-
-ItemSection:Input({
-    Title = "目标玩家名称",
-    Desc = "输入要传送物品的玩家名",
-    Placeholder = "输入玩家名",
-    Callback = function(value)
-        Config.cswjia = value
-        Notify("设置", "目标玩家: " .. value, 2)
-    end
+local Window = WindUI:CreateWindow({
+    Title = "白 - 伐木大亨2",
+    Author = "moonlua.icu",
+    OpenButton = {
+        Title = "点击打开菜单",
+        CornerRadius = UDim.new(0, 16),
+        StrokeThickness = 3,
+        Color = ColorSequence.new(
+            Color3.fromHex("f9a8d4"),
+            Color3.fromHex("f9a8d4")
+        ),
+        OnlyMobile = false,
+        Enabled = true,
+        Draggable = true,
+        Scale = 0.5,
+    },
 })
 
-ItemSection:Button({
-    Title = "设置传送点",
-    Desc = "在当前位置设置传送点",
-    Callback = function()
-        if not LP.Character then
-            Notify("错误", "角色不存在", 3)
-            return
-        end
-        pcall(function()
-            if WS:FindFirstChild("baiBasedropCord") then
-                WS.baiBasedropCord:Destroy()
-            end
-        end)
-        local cord = Instance.new("Part", WS)
-        cord.Name = "baiBasedropCord"
-        cord.CanCollide = false
-        cord.Anchored = true
-        cord.Shape = Enum.PartType.Ball
-        cord.Color = Color3.fromRGB(0, 217, 255)
-        cord.Size = Vector3.new(2, 2, 2)
-        cord.CFrame = LP.Character.HumanoidRootPart.CFrame
-        cord.Material = Enum.Material.Marble
-        Config.itemset = LP.Character.HumanoidRootPart.CFrame
-        Notify("完成", "已设置传送点", 2)
-    end
-})
+if not Window then
+    print("❌ Window创建失败")
+    return
+end
 
-ItemSection:Button({
-    Title = "删除传送点",
-    Desc = "删除传送点",
-    Callback = function()
-        pcall(function()
-            if WS:FindFirstChild("baiBasedropCord") then
-                WS.baiBasedropCord:Destroy()
-            end
-            Config.itemset = nil
-        end)
-        Notify("完成", "已删除传送点", 2)
-    end
-})
-
--- ===== 批量选择相同属性物品 =====
-ItemSection:Button({
-    Title = "📦 批量选择相同物品",
-    Desc = "点击一个物品，自动选择所有相同类型的物品",
-    Callback = function()
-        if Config.cswjia == "" then
-            Notify("错误", "请先输入目标玩家名称", 3)
-            return
-        end
+-- 检查Window是否有Tab方法
+if not Window.Tab then
+    print("❌ Window.Tab 不存在")
+    -- 尝试使用其他方法名
+    if Window.AddTab then
+        print("✅ 使用 Window.AddTab")
+        Window._tabMethod = "AddTab"
+    elseif Window.NewTab then
+        print("✅ 使用 Window.NewTab")
+        Window._tabMethod = "NewTab"
+    elseif Window.tab then
+        print("✅ 使用 Window.tab")
+        Window._tabMethod = "tab"
+    else
+        print("❌ 无法找到Tab方法，使用备用UI")
+        -- 创建备用简单GUI
+        local screenGui = Instance.new("ScreenGui")
+        screenGui.Name = "BaiScript"
+        screenGui.Parent = game.CoreGui
         
-        Notify("提示", "点击一个物品来选择所有相同类型", 3)
-        local done = false
-        local conn = Mouse.Button1Up:Connect(function()
-            local clicked = Mouse.Target
-            if not clicked then return end
-            
-            local item = clicked.Parent
-            if not item:FindFirstChild("Owner") then
-                item = item.Parent
-                if not item or not item:FindFirstChild("Owner") then
-                    Notify("错误", "请点击一个物品", 2)
-                    return
-                end
-            end
-            
-            if tostring(item.Owner.Value) ~= Config.cswjia then
-                Notify("错误", "该物品不属于目标玩家", 2)
-                return
-            end
-            
-            -- 获取物品的唯一标识
-            local itemIdentifier = nil
-            local itemType = nil
-            
-            -- 检测物品类型
-            if item:FindFirstChild("PurchasedBoxItemName") then
-                itemIdentifier = item.PurchasedBoxItemName.Value
-                itemType = "PurchasedBoxItemName"
-            elseif item:FindFirstChild("ItemName") then
-                itemIdentifier = item.ItemName.Value
-                itemType = "ItemName"
-            elseif item:FindFirstChild("Type") then
-                itemIdentifier = item.Type.Value
-                itemType = "Type"
-            elseif item:FindFirstChild("ToolName") then
-                itemIdentifier = item.ToolName.Value
-                itemType = "ToolName"
-            elseif item:FindFirstChild("TreeClass") then
-                itemIdentifier = item.TreeClass.Value
-                itemType = "TreeClass"
-            elseif item:FindFirstChild("WoodSection") then
-                itemIdentifier = "WoodSection"
-                itemType = "WoodSection"
-            else
-                Notify("错误", "无法识别该物品类型", 2)
-                return
-            end
-            
-            -- 清除之前的选择
-            for _, v in pairs(WS.PlayerModels:GetChildren()) do
-                if v:FindFirstChild("SelectionBox") then
-                    v.SelectionBox:Destroy()
-                end
-            end
-            
-            -- 选择所有相同类型的物品
-            local count = 0
-            for _, v in pairs(WS.PlayerModels:GetChildren()) do
-                if v:FindFirstChild("Owner") and tostring(v.Owner.Value) == Config.cswjia then
-                    local match = false
-                    
-                    if itemType == "PurchasedBoxItemName" and v:FindFirstChild("PurchasedBoxItemName") then
-                        if v.PurchasedBoxItemName.Value == itemIdentifier then
-                            match = true
-                        end
-                    elseif itemType == "ItemName" and v:FindFirstChild("ItemName") then
-                        if v.ItemName.Value == itemIdentifier then
-                            match = true
-                        end
-                    elseif itemType == "Type" and v:FindFirstChild("Type") then
-                        if v.Type.Value == itemIdentifier then
-                            match = true
-                        end
-                    elseif itemType == "ToolName" and v:FindFirstChild("ToolName") then
-                        if v.ToolName.Value == itemIdentifier then
-                            match = true
-                        end
-                    elseif itemType == "TreeClass" and v:FindFirstChild("TreeClass") then
-                        if v.TreeClass.Value == itemIdentifier then
-                            match = true
-                        end
-                    elseif itemType == "WoodSection" and v:FindFirstChild("WoodSection") then
-                        match = true
-                    end
-                    
-                    if match then
-                        local SB = Instance.new("SelectionBox", v)
-                        SB.Adornee = v
-                        SB.Color3 = Color3.fromRGB(0, 255, 0)
-                        count = count + 1
-                    end
-                end
-            end
-            
-            done = true
-            Notify("完成", "已选择 " .. count .. " 个相同类型的物品", 3)
-            conn:Disconnect()
+        local frame = Instance.new("Frame")
+        frame.Size = UDim2.new(0, 450, 0, 500)
+        frame.Position = UDim2.new(0.5, -225, 0.5, -250)
+        frame.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+        frame.Parent = screenGui
+        Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 12)
+        
+        local title = Instance.new("TextLabel")
+        title.Size = UDim2.new(1, 0, 0, 40)
+        title.Position = UDim2.new(0, 0, 0, 10)
+        title.BackgroundTransparency = 1
+        title.Text = "白 - 伐木大亨2"
+        title.TextColor3 = Color3.fromRGB(255, 255, 255)
+        title.Font = Enum.Font.GothamBold
+        title.TextSize = 20
+        title.Parent = frame
+        
+        local closeBtn = Instance.new("TextButton")
+        closeBtn.Size = UDim2.new(0, 30, 0, 30)
+        closeBtn.Position = UDim2.new(1, -40, 0, 10)
+        closeBtn.BackgroundTransparency = 1
+        closeBtn.Text = "✕"
+        closeBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
+        closeBtn.Font = Enum.Font.GothamBold
+        closeBtn.TextSize = 18
+        closeBtn.Parent = frame
+        closeBtn.MouseButton1Click:Connect(function()
+            screenGui:Destroy()
         end)
         
-        repeat task.wait() until done
-    end
-})
-
--- ===== 批量选择相同名称物品（更精确） =====
-ItemSection:Button({
-    Title = "🏷️ 批量选择相同名称",
-    Desc = "点击一个物品，选择所有同名物品（更精确）",
-    Callback = function()
-        if Config.cswjia == "" then
-            Notify("错误", "请先输入目标玩家名称", 3)
-            return
+        local status = Instance.new("TextLabel")
+        status.Size = UDim2.new(1, -20, 0, 30)
+        status.Position = UDim2.new(0, 10, 0, 60)
+        status.BackgroundTransparency = 1
+        status.Text = "✅ 脚本加载成功！"
+        status.TextColor3 = Color3.fromRGB(0, 255, 100)
+        status.Font = Enum.Font.Gotham
+        status.TextSize = 16
+        status.Parent = frame
+        
+        local info = Instance.new("TextLabel")
+        info.Size = UDim2.new(1, -20, 0, 60)
+        info.Position = UDim2.new(0, 10, 0, 100)
+        info.BackgroundTransparency = 1
+        info.Text = "UI框架不兼容\n请使用其他脚本或更新框架"
+        info.TextColor3 = Color3.fromRGB(200, 200, 200)
+        info.Font = Enum.Font.Gotham
+        info.TextSize = 14
+        info.TextWrapped = true
+        info.Parent = frame
+        
+        -- 添加一些简单功能按钮
+        local function addButton(text, y, callback)
+            local btn = Instance.new("TextButton")
+            btn.Size = UDim2.new(0.9, 0, 0, 35)
+            btn.Position = UDim2.new(0.05, 0, 0, y)
+            btn.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
+            btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+            btn.Text = text
+            btn.Font = Enum.Font.Gotham
+            btn.TextSize = 14
+            btn.Parent = frame
+            Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+            btn.MouseButton1Click:Connect(callback)
+            return btn
         end
         
-        Notify("提示", "点击一个物品来选择所有同名物品", 3)
-        local done = false
-        local conn = Mouse.Button1Up:Connect(function()
-            local clicked = Mouse.Target
-            if not clicked then return end
-            
-            local item = clicked.Parent
-            if not item:FindFirstChild("Owner") then
-                item = item.Parent
-                if not item or not item:FindFirstChild("Owner") then
-                    Notify("错误", "请点击一个物品", 2)
-                    return
-                end
-            end
-            
-            if tostring(item.Owner.Value) ~= Config.cswjia then
-                Notify("错误", "该物品不属于目标玩家", 2)
-                return
-            end
-            
-            -- 获取物品名称
-            local itemName = nil
-            local nameType = nil
-            
-            if item:FindFirstChild("PurchasedBoxItemName") then
-                itemName = item.PurchasedBoxItemName.Value
-                nameType = "PurchasedBoxItemName"
-            elseif item:FindFirstChild("ItemName") then
-                itemName = item.ItemName.Value
-                nameType = "ItemName"
-            elseif item:FindFirstChild("ToolName") then
-                itemName = item.ToolName.Value
-                nameType = "ToolName"
-            elseif item:FindFirstChild("Type") then
-                itemName = item.Type.Value
-                nameType = "Type"
-            elseif item:FindFirstChild("TreeClass") then
-                itemName = item.TreeClass.Value
-                nameType = "TreeClass"
-            else
-                Notify("错误", "无法识别该物品名称", 2)
-                return
-            end
-            
-            -- 清除之前的选择
-            for _, v in pairs(WS.PlayerModels:GetChildren()) do
-                if v:FindFirstChild("SelectionBox") then
-                    v.SelectionBox:Destroy()
-                end
-            end
-            
-            -- 选择所有同名物品
-            local count = 0
-            for _, v in pairs(WS.PlayerModels:GetChildren()) do
-                if v:FindFirstChild("Owner") and tostring(v.Owner.Value) == Config.cswjia then
-                    local match = false
-                    
-                    if nameType == "PurchasedBoxItemName" and v:FindFirstChild("PurchasedBoxItemName") then
-                        if v.PurchasedBoxItemName.Value == itemName then
-                            match = true
-                        end
-                    elseif nameType == "ItemName" and v:FindFirstChild("ItemName") then
-                        if v.ItemName.Value == itemName then
-                            match = true
-                        end
-                    elseif nameType == "ToolName" and v:FindFirstChild("ToolName") then
-                        if v.ToolName.Value == itemName then
-                            match = true
-                        end
-                    elseif nameType == "Type" and v:FindFirstChild("Type") then
-                        if v.Type.Value == itemName then
-                            match = true
-                        end
-                    elseif nameType == "TreeClass" and v:FindFirstChild("TreeClass") then
-                        if v.TreeClass.Value == itemName then
-                            match = true
-                        end
-                    end
-                    
-                    if match then
-                        local SB = Instance.new("SelectionBox", v)
-                        SB.Adornee = v
-                        SB.Color3 = Color3.fromRGB(0, 255, 255)
-                        count = count + 1
-                    end
-                end
-            end
-            
-            done = true
-            Notify("完成", "已选择 " .. count .. " 个同名物品: " .. itemName, 3)
-            conn:Disconnect()
+        -- 在备用UI中添加基础功能
+        local yPos = 160
+        addButton("自动砍树", yPos, function()
+            Notify("提示", "备用UI模式：自动砍树功能需要完整UI支持", 3)
         end)
         
-        repeat task.wait() until done
-    end
-})
-
--- ===== 按颜色批量选择 =====
-ItemSection:Button({
-    Title = "🎨 按颜色批量选择",
-    Desc = "点击一个物品，选择所有相同颜色的物品",
-    Callback = function()
-        if Config.cswjia == "" then
-            Notify("错误", "请先输入目标玩家名称", 3)
-            return
-        end
-        
-        Notify("提示", "点击一个物品来选择所有相同颜色的物品", 3)
-        local done = false
-        local conn = Mouse.Button1Up:Connect(function()
-            local clicked = Mouse.Target
-            if not clicked then return end
-            
-            local item = clicked.Parent
-            if not item:FindFirstChild("Owner") then
-                item = item.Parent
-                if not item or not item:FindFirstChild("Owner") then
-                    Notify("错误", "请点击一个物品", 2)
-                    return
-                end
-            end
-            
-            if tostring(item.Owner.Value) ~= Config.cswjia then
-                Notify("错误", "该物品不属于目标玩家", 2)
-                return
-            end
-            
-            -- 获取物品颜色
-            local itemColor = nil
-            local mainPart = item:FindFirstChild("Main")
-            if mainPart then
-                itemColor = mainPart.BrickColor
-            end
-            
-            if not itemColor then
-                -- 尝试找其他部件
-                for _, v in pairs(item:GetChildren()) do
-                    if v:IsA("BasePart") and v.BrickColor and v.BrickColor ~= BrickColor.new("Medium stone grey") then
-                        itemColor = v.BrickColor
-                        break
-                    end
-                end
-            end
-            
-            if not itemColor then
-                Notify("错误", "无法识别该物品颜色", 2)
-                return
-            end
-            
-            -- 清除之前的选择
-            for _, v in pairs(WS.PlayerModels:GetChildren()) do
-                if v:FindFirstChild("SelectionBox") then
-                    v.SelectionBox:Destroy()
-                end
-            end
-            
-            -- 选择所有相同颜色的物品
-            local count = 0
-            for _, v in pairs(WS.PlayerModels:GetChildren()) do
-                if v:FindFirstChild("Owner") and tostring(v.Owner.Value) == Config.cswjia then
-                    if v:FindFirstChild("Main") and v.Main.BrickColor == itemColor then
-                        local SB = Instance.new("SelectionBox", v)
-                        SB.Adornee = v
-                        SB.Color3 = Color3.fromRGB(255, 255, 0)
-                        count = count + 1
-                    end
-                end
-            end
-            
-            done = true
-            Notify("完成", "已选择 " .. count .. " 个同色物品: " .. itemColor.Name, 3)
-            conn:Disconnect()
+        addButton("带来树", yPos + 45, function()
+            Notify("提示", "备用UI模式：带来树功能需要完整UI支持", 3)
         end)
         
-        repeat task.wait() until done
-    end
-})
-
--- ===== 按标签/分类批量选择 =====
-ItemSection:Button({
-    Title = "📂 按分类批量选择",
-    Desc = "选择所有相同分类的物品（结构/工具/蓝图等）",
-    Callback = function()
-        if Config.cswjia == "" then
-            Notify("错误", "请先输入目标玩家名称", 3)
-            return
-        end
+        addButton("卖所有木头", yPos + 90, function()
+            Notify("提示", "备用UI模式：卖木头功能需要完整UI支持", 3)
+        end)
         
-        -- 获取所有可用的分类
-        local categories = {}
-        for _, v in pairs(WS.PlayerModels:GetChildren()) do
-            if v:FindFirstChild("Owner") and tostring(v.Owner.Value) == Config.cswjia then
-                if v:FindFirstChild("Type") then
-                    local cat = v.Type.Value
-                    if not categories[cat] then
-                        categories[cat] = true
-                    end
-                end
-            end
-        end
-        
-        local catList = {}
-        for cat, _ in pairs(categories) do
-            table.insert(catList, cat)
-        end
-        
-        if #catList == 0 then
-            Notify("错误", "没有找到可分类的物品", 3)
-            return
-        end
-        
-        -- 显示分类选择通知
-        local msg = "请选择分类:\n"
-        for i, cat in ipairs(catList) do
-            msg = msg .. i .. ". " .. cat .. "\n"
-        end
-        msg = msg .. "输入数字选择"
-        
-        Notify("分类选择", msg, 5)
-        
-        local input = Instance.new("TextBox")
-        input.Size = UDim2.new(0, 200, 0, 30)
-        input.Position = UDim2.new(0.5, -100, 0.5, -15)
-        input.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
-        input.TextColor3 = Color3.fromRGB(255, 255, 255)
-        input.PlaceholderText = "输入数字 (1-" .. #catList .. ")"
-        input.Font = Enum.Font.Gotham
-        input.TextSize = 16
-        input.Parent = game.CoreGui
-        
-        input.FocusLost:Connect(function(enterPressed)
-            if enterPressed then
-                local num = tonumber(input.Text)
-                if num and num >= 1 and num <= #catList then
-                    local selectedCat = catList[num]
-                    
-                    -- 清除之前的选择
-                    for _, v in pairs(WS.PlayerModels:GetChildren()) do
-                        if v:FindFirstChild("SelectionBox") then
-                            v.SelectionBox:Destroy()
-                        end
-                    end
-                    
-                    local count = 0
-                    for _, v in pairs(WS.PlayerModels:GetChildren()) do
-                        if v:FindFirstChild("Owner") and tostring(v.Owner.Value) == Config.cswjia then
-                            if v:FindFirstChild("Type") and v.Type.Value == selectedCat then
-                                local SB = Instance.new("SelectionBox", v)
-                                SB.Adornee = v
-                                SB.Color3 = Color3.fromRGB(255, 0, 255)
-                                count = count + 1
-                            end
-                        end
-                    end
-                    
-                    Notify("完成", "已选择 " .. count .. " 个分类为 " .. selectedCat .. " 的物品", 3)
-                else
-                    Notify("错误", "无效的数字", 2)
-                end
-                input:Destroy()
+        addButton("安全自杀", yPos + 135, function()
+            if LP and LP.Character then
+                LP.Character.Head:Destroy()
             end
         end)
         
-        -- 自动关闭
-        task.delay(10, function()
-            if input then
-                input:Destroy()
-            end
-        end)
+        return
     end
-})
+end
 
--- ===== 选择所有物品 =====
-ItemSection:Button({
-    Title = "✅ 选择所有物品",
-    Desc = "选择目标玩家的所有物品",
-    Callback = function()
-        if Config.cswjia == "" then
-            Notify("错误", "请先输入目标玩家名称", 3)
-            return
+-- 定义Window的Tab方法（如果不存在则创建代理）
+if not Window.Tab then
+    Window.Tab = function(self, ...)
+        if self._tabMethod then
+            return self[self._tabMethod](self, ...)
         end
-        
-        -- 清除之前的选择
-        for _, v in pairs(WS.PlayerModels:GetChildren()) do
-            if v:FindFirstChild("SelectionBox") then
-                v.SelectionBox:Destroy()
-            end
-        end
-        
-        local count = 0
-        for _, v in pairs(WS.PlayerModels:GetChildren()) do
-            if v:FindFirstChild("Owner") and tostring(v.Owner.Value) == Config.cswjia then
-                local SB = Instance.new("SelectionBox", v)
-                SB.Adornee = v
-                SB.Color3 = Color3.fromRGB(0, 255, 0)
-                count = count + 1
-            end
-        end
-        
-        if count > 0 then
-            Notify("完成", "已选择 " .. count .. " 个物品", 3)
-        else
-            Notify("提示", "目标玩家没有物品", 2)
+        error("Tab method not found")
+    end
+end
+
+-- ============================================================
+-- 基础变量
+-- ============================================================
+local Players = game:GetService("Players")
+local LP = Players.LocalPlayer
+local RS = game:GetService("ReplicatedStorage")
+local WS = game:GetService("Workspace")
+local UIS = game:GetService("UserInputService")
+local Mouse = LP:GetMouse()
+local TweenService = game:GetService("TweenService")
+
+-- ============================================================
+-- 通知函数
+-- ============================================================
+local function Notify(Title, Text, Duration)
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = Title,
+        Text = Text,
+        Duration = Duration or 3,
+    })
+end
+
+-- ============================================================
+-- 配置表
+-- ============================================================
+local Config = {
+    cuttreeselect = "Generic",
+    autofarm = false,
+    autofarm1 = false,
+    autosell = false,
+    autodrop = false,
+    autopick = false,
+    treecutset = nil,
+    farmLoop = nil,
+    sellLoop = nil,
+    moneyLoop = nil,
+    modTreeTarget = "Generic",
+    modTreeNewType = "Generic",
+    soltnumber = "1",
+    walkspeed = 16,
+    jumppower = 50,
+    gravity = 196.2,
+    noclip = false,
+    invisible = false,
+    fly = false,
+    saymege = "",
+    saymount = 1,
+    autosay = false,
+    moneyaoumt = 1,
+    moneytoplayername = "",
+    playernamedied = "",
+    cswjia = "",
+    zlwjia = "",
+    mtwjia = "",
+    zix = 1,
+    zlz = 3,
+    zlmt = nil,
+    shuzhe = false,
+    tchonmt = nil,
+    autobuystop = false,
+    autobuyamount = 1,
+    autobuyset = nil,
+    stopcar = false,
+    car = nil,
+    whthmose = false,
+    loaddupeaxewaittime = 3.1,
+    itemtoopen = "",
+    openItem = nil,
+    itemset = nil,
+    cskais = false,
+    xzemuban = false,
+    kuangxiu = nil,
+    dxmz = "",
+    awaysday = false,
+    awaysdnight = false,
+    nofog = false,
+    waterwalk = false,
+    modwood = false,
+    bringamount = 1,
+    bringtree = false,
+}
+
+-- ============================================================
+-- 树类型数据
+-- ============================================================
+local TreeOptions = {
+    "普通树", "幻影木", "沼泽黄金", "樱花", "蓝木", "冰木", "火山木", "橡木",
+    "巧克力木", "白桦木", "黄金木", "雪地松", "僵尸木", "大巧克力树", "椰子树", "南瓜木", "幽灵木"
+}
+
+local TreeMap = {
+    ["普通树"] = "Generic",
+    ["幻影木"] = "LoneCave",
+    ["沼泽黄金"] = "GoldSwampy",
+    ["樱花"] = "Cherry",
+    ["蓝木"] = "CaveCrawler",
+    ["冰木"] = "Frost",
+    ["火山木"] = "Volcano",
+    ["橡木"] = "Oak",
+    ["巧克力木"] = "Walnut",
+    ["白桦木"] = "Birch",
+    ["黄金木"] = "SnowGlow",
+    ["雪地松"] = "Pine",
+    ["僵尸木"] = "GreenSwampy",
+    ["大巧克力树"] = "Koa",
+    ["椰子树"] = "Palm",
+    ["南瓜木"] = "SpookyNeon",
+    ["幽灵木"] = "Spooky",
+}
+
+-- ============================================================
+-- 传送位置
+-- ============================================================
+local TeleportOptions = {
+    "出生点", "木材反斗城", "土地商店", "桥", "码头", "椰子岛", "洞穴",
+    "火山", "沼泽", "家具店", "盒子车行", "连锁逻辑店", "鲍勃的小店", "画廊",
+    "灵视神殿", "怪人", "小绿盒", "滑雪小屋", "黄金木洞穴", "鲨鱼斧合成", "小鸟斧头", "灯塔"
+}
+
+local TeleportMap = {
+    ["出生点"] = CFrame.new(174, 10.5, 66),
+    ["木材反斗城"] = CFrame.new(270, 4, 60),
+    ["土地商店"] = CFrame.new(270, 3, -98),
+    ["桥"] = CFrame.new(112, 37, -892),
+    ["码头"] = CFrame.new(1136, 0, -206),
+    ["椰子岛"] = CFrame.new(2614, -4, -34),
+    ["洞穴"] = CFrame.new(3590, -177, 415),
+    ["火山"] = CFrame.new(-1588, 623, 1069),
+    ["沼泽"] = CFrame.new(-1216, 131, -822),
+    ["家具店"] = CFrame.new(486, 3, -1722),
+    ["盒子车行"] = CFrame.new(509, 3, -1458),
+    ["连锁逻辑店"] = CFrame.new(4615, 7, -794),
+    ["鲍勃的小店"] = CFrame.new(292, 8, -2544),
+    ["画廊"] = CFrame.new(5217, -166, 721),
+    ["灵视神殿"] = CFrame.new(-1608, 195, 928),
+    ["怪人"] = CFrame.new(1071, 16, 1141),
+    ["小绿盒"] = CFrame.new(-1667, 349, 1474),
+    ["滑雪小屋"] = CFrame.new(1244, 59, 2290),
+    ["黄金木洞穴"] = CFrame.new(-1080, -5, -942),
+    ["鲨鱼斧合成"] = CFrame.new(330.259735, 45.7998505, 1943.30823),
+    ["小鸟斧头"] = CFrame.new(4813.1, 33.5, -978.8),
+    ["灯塔"] = CFrame.new(1464.8, 356.3, 3257.2),
+}
+
+-- ============================================================
+-- 玩家列表
+-- ============================================================
+local PlayerList = {}
+local function RefreshPlayerList()
+    PlayerList = {}
+    for _, v in pairs(Players:GetPlayers()) do
+        table.insert(PlayerList, v.Name)
+    end
+end
+RefreshPlayerList()
+
+-- ============================================================
+-- 工具函数
+-- ============================================================
+local function getTools()
+    local tools = {}
+    if not LP.Character then return tools end
+    for _, v in pairs(LP.Backpack:GetChildren()) do
+        if v:IsA("Tool") and v:FindFirstChild("ToolName") then
+            table.insert(tools, v)
         end
     end
-})
+    local char = LP.Character
+    if char then
+        local tool = char:FindFirstChildOfClass("Tool")
+        if tool and tool:FindFirstChild("ToolName") then
+            table.insert(tools, tool)
+        end
+    end
+    return tools
+end
 
--- ===== 取消所有选择 =====
-ItemSection:Button({
-    Title = "❌ 取消所有选择",
-    Desc = "取消所有选中的物品",
-    Callback = function()
-        local count = 0
-        for _, v in pairs(WS.PlayerModels:GetChildren()) do
-            if v:FindFirstChild("SelectionBox") then
-                v.SelectionBox:Destroy()
-                count = count + 1
+local function getToolStats(toolName)
+    if typeof(toolName) ~= "string" then
+        toolName = toolName.ToolName.Value
+    end
+    return require(RS.AxeClasses['AxeClass_' .. toolName]).new()
+end
+
+local function getBestAxe(treeClass)
+    local tools = getTools()
+    if #tools == 0 then
+        Notify("错误", "你需要斧头", 3)
+        return nil
+    end
+    
+    if treeClass == "LoneCave" then
+        for _, v in pairs(tools) do
+            if v.ToolName.Value == "EndTimesAxe" then
+                return v
             end
         end
-        Notify("完成", "已取消 " .. count .. " 个选择", 2)
+        Notify("错误", "幻影木需要末日斧头", 3)
+        return nil
     end
-})
+    
+    local sorted = {}
+    for _, v in pairs(tools) do
+        local stats = getToolStats(v)
+        table.insert(sorted, {
+            tool = v,
+            damage = stats.Damage
+        })
+    end
+    table.sort(sorted, function(a, b)
+        return a.damage > b.damage
+    end)
+    
+    return sorted[1].tool
+end
 
--- ===== 获得物品传送工具 =====
-ItemSection:Button({
-    Title = "🔧 获得物品传送工具",
-    Desc = "点击物品传送到传送点",
-    Callback = function()
-        if Config.itemset == nil then
-            Notify("错误", "请先设置传送点", 3)
-            return
-        end
-        if Config.cswjia == "" then
-            Notify("错误", "请先输入目标玩家名称", 3)
-            return
-        end
-        local tool = Instance.new("Tool", LP.Backpack)
-        tool.Name = "点击传送物品"
-        tool.RequiresHandle = false
-        local mouse = LP:GetMouse()
-        tool.Activated:Connect(function()
-            local target = mouse.Target
-            if not target then return end
-            local item = target.Parent
-            if item:FindFirstChild("Owner") and tostring(item.Owner.Value) == Config.cswjia then
-                if item:FindFirstChild("Main") then
-                    if (LP.Character.HumanoidRootPart.CFrame.p - item.Main.CFrame.p).Magnitude > 5 then
-                        tp(item.Main.CFrame + Vector3.new(4, 0, 4))
+local function cutPart(event, section, height, tool, treeClass)
+    local axeStats = getToolStats(tool)
+    RS.Interaction.RemoteProxy:FireServer(event, {
+        tool = tool,
+        faceVector = Vector3.new(-1, 0, 0),
+        height = height or 0.3,
+        sectionId = section or 1,
+        hitPoints = axeStats.Damage or 10,
+        cooldown = axeStats.SwingCooldown or 0.1,
+        cuttingClass = "Axe"
+    })
+end
+
+local function getBiggestTree(treeClass)
+    local biggest = nil
+    local maxSize = 0
+    for _, region in pairs(WS:GetChildren()) do
+        if region.Name == "TreeRegion" then
+            for _, tree in pairs(region:GetChildren()) do
+                if tree:FindFirstChild("TreeClass") and tree.TreeClass.Value == treeClass then
+                    local ws = tree:FindFirstChild("WoodSection")
+                    if ws then
+                        local size = ws.Size.X * ws.Size.Y * ws.Size.Z
+                        if size > maxSize then
+                            maxSize = size
+                            biggest = tree
+                        end
                     end
-                    for i = 1, 30 do
-                        RS.Interaction.ClientIsDragging:FireServer(item)
-                        item.Main.CFrame = Config.itemset
-                        RS.Interaction.ClientIsDragging:FireServer(item)
-                        task.wait()
-                    end
-                    Notify("完成", "已传送物品", 2)
-                elseif item:FindFirstChild("WoodSection") then
-                    tp(item.WoodSection.CFrame + Vector3.new(4, 0, 4))
-                    for i = 1, 30 do
-                        RS.Interaction.ClientIsDragging:FireServer(item)
-                        item.WoodSection.CFrame = Config.itemset
-                        RS.Interaction.ClientIsDragging:FireServer(item)
-                        task.wait()
-                    end
-                    Notify("完成", "已传送物品", 2)
-                else
-                    Notify("错误", "无法识别该物品", 2)
                 end
-            else
-                Notify("错误", "该物品不属于目标玩家", 2)
-            end
-        end)
-        Notify("工具", "已获得物品传送工具（点击物品传送）", 2)
-    end
-})
-
--- ===== 开始传送所有选中物品 =====
-ItemSection:Button({
-    Title = "🚀 传送所有选中物品",
-    Desc = "传送所有选中的物品到传送点",
-    Callback = function()
-        if Config.itemset == nil then
-            Notify("错误", "请先设置传送点", 3)
-            return
-        end
-        if Config.cswjia == "" then
-            Notify("错误", "请先输入目标玩家名称", 3)
-            return
-        end
-        
-        Config.cskais = true
-        local OldPos = LP.Character.HumanoidRootPart.CFrame
-        local count = 0
-        
-        for _, v in pairs(WS.PlayerModels:GetChildren()) do
-            if Config.cskais == false then break end
-            if v:FindFirstChild("Owner") and tostring(v.Owner.Value) == Config.cswjia then
-                if v:FindFirstChild("SelectionBox") then
-                    if v:FindFirstChild("Main") then
-                        if (LP.Character.HumanoidRootPart.CFrame.p - v.Main.CFrame.p).Magnitude > 5 then
-                            tp(v.Main.CFrame + Vector3.new(4, 0, 4))
-                        end
-                        for i = 1, 30 do
-                            if Config.cskais == false then break end
-                            RS.Interaction.ClientIsDragging:FireServer(v)
-                            v:PivotTo(Config.itemset)
-                            RS.Interaction.ClientIsDragging:FireServer(v)
-                            task.wait()
-                        end
-                        v.SelectionBox:Destroy()
-                        count = count + 1
-                    elseif v:FindFirstChild("WoodSection") then
-                        tp(v.WoodSection.CFrame + Vector3.new(4, 0, 4))
-                        for i = 1, 70 do
-                            if Config.cskais == false then break end
-                            RS.Interaction.ClientIsDragging:FireServer(v)
-                            v.WoodSection.CFrame = Config.itemset * CFrame.Angles(math.rad(90), 0, 90)
-                            RS.Interaction.ClientIsDragging:FireServer(v)
-                            task.wait()
-                        end
-                        v.SelectionBox:Destroy()
-                        count = count + 1
-                    end
-                end
             end
         end
-        
-        tp(OldPos)
-        Config.cskais = false
-        Notify("完成", "已传送 " .. count .. " 个物品", 3)
     end
-})
+    return biggest
+end
 
--- ===== 停止传送 =====
-ItemSection:Button({
-    Title = "⏹ 停止传送",
-    Desc = "停止正在进行的传送",
-    Callback = function()
-        Config.cskais = false
-        Notify("停止", "已停止传送", 2)
+local function treeListener(treeClass, callback)
+    local connection
+    connection = WS.LogModels.ChildAdded:Connect(function(child)
+        local owner = child:WaitForChild("Owner")
+        if owner.Value == LP and child.TreeClass.Value == treeClass then
+            connection:Disconnect()
+            callback(child)
+        end
+    end)
+    return connection
+end
+
+local function tp(pos)
+    if not LP.Character then return end
+    local hrp = LP.Character:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+    if typeof(pos) == "CFrame" then
+        hrp.CFrame = pos
+    elseif typeof(pos) == "Vector3" then
+        hrp.Position = pos
     end
-})
+end
 
--- ===== 框选物品（保留原有功能） =====
-ItemSection:Toggle({
-    Title = "框选物品",
-    Desc = "拖拽框选多个物品",
-    Value = false,
-    Callback = function(state)
-        if state then
-            Config.kuangxiu = UIS.InputBegan:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                    Frame.Visible = true
-                    Frame.Position = UDim2.new(0, Mouse.X, 0, Mouse.Y)
-                    while UIS:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) do
-                        game:GetService("RunService").RenderStepped:Wait()
-                        Frame.Size = UDim2.new(0, Mouse.X, 0, Mouse.Y) - Frame.Position
-                        
-                        for _, v in pairs(WS.PlayerModels:GetChildren()) do
-                            if Config.xzemuban and v:FindFirstChild("Owner") and tostring(v.Owner.Value) == Config.cswjia and v:FindFirstChild("WoodSection") then
-                                local screenpos, visible = WS.CurrentCamera:WorldToScreenPoint(v.WoodSection.CFrame.p)
-                                if visible and is_in_frame(screenpos, Frame) then
-                                    if not v:FindFirstChild("SelectionBox") then
-                                        local SB = Instance.new("SelectionBox", v)
-                                        SB.Adornee = v
-                                        SB.Color3 = Color3.fromRGB(0, 255, 0)
-                                    end
-                                end
-                            end
-                            if v:FindFirstChild("Owner") and tostring(v.Owner.Value) == Config.cswjia and v:FindFirstChild("Main") then
-                                local screenpos, visible = WS.CurrentCamera:WorldToScreenPoint(v.Main.CFrame.p)
-                                if visible and is_in_frame(screenpos, Frame) then
-                                    if not v:FindFirstChild("SelectionBox") then
-                                        local SB = Instance.new("SelectionBox", v)
-                                        SB.Adornee = v
-                                        SB.Color3 = Color3.fromRGB(0, 255, 0)
-                                    end
-                                end
-                            end
-                        end
-                    end
-                    Frame.Size = UDim2.new(0, 1, 0, 1)
-                    Frame.Visible = false
+local function droptool(Position)
+    local char = LP.Character
+    if char then
+        local tool = char:FindFirstChildOfClass("Tool")
+        if tool and tool:FindFirstChild("ToolName") then
+            RS.Interaction.ClientInteracted:FireServer(tool, "Drop tool", Position or char.Head.CFrame)
+        end
+    end
+    for _, v in pairs(LP.Backpack:GetChildren()) do
+        if v:IsA("Tool") and v:FindFirstChild("ToolName") then
+            RS.Interaction.ClientInteracted:FireServer(v, "Drop tool", Position or LP.Character.Head.CFrame)
+        end
+    end
+end
+
+local function carTeleport(cframe)
+    if LP.Character then
+        local humanoid = LP.Character:FindFirstChildOfClass("Humanoid")
+        if humanoid and humanoid.SeatPart then
+            local Car = humanoid.SeatPart.Parent
+            spawn(function()
+                for i = 1, 5 do
+                    task.wait()
+                    Car:SetPrimaryPartCFrame(cframe)
+                    RS.Interaction.ClientRequestOwnership:FireServer(Car.Main)
+                    RS.Interaction.ClientIsDragging:FireServer(Car.Main)
                 end
             end)
-        else
-            if Config.kuangxiu then
-                Config.kuangxiu:Disconnect()
-                Config.kuangxiu = nil
-            end
-            Frame.Visible = false
-            Notify("关闭", "已关闭框选模式", 2)
         end
     end
-})
+end
 
-ItemSection:Toggle({
-    Title = "包含木板",
-    Desc = "框选时包含木板",
-    Value = false,
-    Callback = function(state)
-        Config.xzemuban = state
+local function getPlanks()
+    local plankList = {}
+    for _, plank in pairs(WS.PlayerModels:GetChildren()) do
+        if plank:FindFirstChild("WoodSection") and plank:FindFirstChild("Owner") and plank.Owner.Value == LP then
+            table.insert(plankList, plank)
+        end
     end
-})
+    return plankList
+end
+
+local function getPosition()
+    if LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then
+        return LP.Character.HumanoidRootPart.Position
+    end
+    return Vector3.new(0, 0, 0)
+end
+
+-- ============================================================
+-- 物品传送功能（框选+传送）
+-- ============================================================
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "ItemSelectGui"
+ScreenGui.Parent = game.CoreGui
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+local Frame = Instance.new("Frame")
+Frame.Parent = ScreenGui
+Frame.BackgroundColor3 = Color3.fromRGB(4, 0, 255)
+Frame.BackgroundTransparency = 0.8
+Frame.BorderColor3 = Color3.new(0.09, 0.137, 0.776)
+Frame.BorderSizePixel = 2
+Frame.Position = UDim2.new(0, 0, 0, 0)
+Frame.Size = UDim2.new(0, 0, 0, 0)
+Frame.Visible = false
+
+function is_in_frame(screenpos, frame)
+    local xPos = frame.AbsolutePosition.X
+    local yPos = frame.AbsolutePosition.Y
+    local xSize = frame.AbsoluteSize.X
+    local ySize = frame.AbsoluteSize.Y
+    
+    local check1 = screenpos.X >= xPos and screenpos.X <= xPos + xSize
+    local check3 = screenpos.Y >= yPos and screenpos.Y <= yPos + ySize
+    local check2 = screenpos.X <= xPos and screenpos.X >= xPos + xSize
+    local check4 = screenpos.Y <= yPos and screenpos.Y >= yPos + ySize
+    
+    return (check1 and check3) or (check2 and check3) or (check1 and check4) or (check2 and check4)
+end
+
+local function startItemTransfer()
+    if Config.itemset == nil then
+        Notify("错误", "请先设置传送点", 4)
+        return
+    end
+    Config.cskais = true
+    local OldPos = LP.Character.HumanoidRootPart.CFrame
+    
+    for _, v in pairs(WS.PlayerModels:GetChildren()) do
+        if Config.cskais == false then break end
+        if v:FindFirstChild("Owner") and tostring(v.Owner.Value) == Config.cswjia then
+            if v:FindFirstChild("SelectionBox") then
+                if v:FindFirstChild("Main") then
+                    if (LP.Character.HumanoidRootPart.CFrame.p - v.Main.CFrame.p).Magnitude > 5 then
+                        tp(v.Main.CFrame + Vector3.new(4, 0, 4))
+                    end
+                    for i = 1, 30 do
+                        if Config.cskais == false then break end
+                        RS.Interaction.ClientIsDragging:FireServer(v)
+                        v:PivotTo(Config.itemset)
+                        RS.Interaction.ClientIsDragging:FireServer(v)
+                        task.wait()
+                    end
+                    v.SelectionBox:Destroy()
+                elseif v:FindFirstChild("WoodSection") then
+                    tp(v.WoodSection.CFrame + Vector3.new(4, 0, 4))
+                    for i = 1, 70 do
+                        if Config.cskais == false then break end
+                        RS.Interaction.ClientIsDragging:FireServer(v)
+                        v.WoodSection.CFrame = Config.itemset * CFrame.Angles(math.rad(90), 0, 90)
+                        RS.Interaction.ClientIsDragging:FireServer(v)
+                        task.wait()
+                    end
+                    v.SelectionBox:Destroy()
+                end
+            end
+        end
+    end
+    tp(OldPos)
+    Config.cskais = false
+    Notify("完成", "已传送所有选中物品", 2)
+end
+
+-- ============================================================
+-- 核心砍树函数
+-- ============================================================
+local function bringTree(treeClass)
+    local tool = getBestAxe(treeClass)
+    if not tool then return false end
+
+    local treeCut = false
+    local listener
+    
+    listener = treeListener(treeClass, function(tree)
+        tree:WaitForChild('Owner', 60)
+        tree.PrimaryPart = tree:FindFirstChild("WoodSection")
+        treeCut = true
+
+        task.spawn(function()
+            for i = 1, 60 do
+                RS.Interaction.ClientIsDragging:FireServer(tree)
+                task.wait()
+            end
+        end)
+        task.wait(0.1)
+        
+        if tree.PrimaryPart then
+            spawn(function()
+                for i = 1, 60 do
+                    tree:PivotTo(Config.treecutset or CFrame.new(0, 0, 0))
+                    task.wait()
+                end
+            end)
+        end
+
+        wait(0.5)
+        if treeClass == "LoneCave" then
+            LP.Character.Head:Destroy()
+            LP.CharacterAdded:Wait()
+            wait(2)
+        end
+        tp(Config.treecutset)
+        if listener then listener:Disconnect() end
+    end)
+
+    local tree = getBiggestTree(treeClass)
+    if not tree then
+        Notify("错误", "没有找到树", 3)
+        if listener then listener:Disconnect() end
+        return false
+    end
+
+    local ws = tree:FindFirstChild("WoodSection")
+    if not ws then
+        Notify("错误", "树没有WoodSection", 3)
+        if listener then listener:Disconnect() end
+        return false
+    end
+
+    spawn(function()
+        local attempts = 0
+        while not treeCut and attempts < 100 do
+            tp(ws.CFrame + Vector3.new(3, 3, 0))
+            cutPart(tree.CutEvent, 1, 0.3, tool, treeClass)
+            task.wait(0.1)
+            attempts = attempts + 1
+        end
+        if not treeCut then
+            Notify("超时", "砍树超时", 3)
+            if listener then listener:Disconnect() end
+        end
+    end)
+
+    return true
+end
+
+local function bringTreeWithCount(treeClass, count)
+    Config.bringtree = true
+    Config.treecutset = LP.Character.HumanoidRootPart.CFrame
+    task.wait(0.2)
+    for i = 1, count do
+        if Config.bringtree == false then break end
+        task.wait()
+        bringTree(treeClass)
+    end
+    Config.bringtree = false
+end
+
+-- ============================================================
+-- 卖木头函数
+-- ============================================================
+local function sellWood()
+    for _, plank in pairs(WS.PlayerModels:GetChildren()) do
+        if plank.Name == "Plank" and plank:FindFirstChild("Owner") then
+            if plank.Owner.Value == LP then
+                local ws = plank:FindFirstChild("WoodSection")
+                if ws then
+                    ws.CFrame = CFrame.new(315, -0.296, 85.791)
+                    task.wait(0.05)
+                    RS.Interaction.ClientIsDragging:FireServer(plank)
+                end
+            end
+        end
+    end
+end
+
+local function sellwood()
+    local oldpos = LP.Character.HumanoidRootPart.CFrame
+    for _, v in pairs(WS.LogModels:GetChildren()) do
+        if v:FindFirstChild("Owner") and v.Owner.Value == LP then
+            tp(v.WoodSection.CFrame)
+            spawn(function()
+                for _, v2 in pairs(v:GetChildren()) do
+                    if v2.Name == "WoodSection" then
+                        local FreezeWood = Instance.new("BodyVelocity", v2)
+                        FreezeWood.Velocity = Vector3.new(0, 0, 0)
+                        FreezeWood.P = 100000
+                        spawn(function()
+                            for i = 1, 50 do
+                                RS.Interaction.ClientIsDragging:FireServer(v)
+                                v:PivotTo(CFrame.new(314.54, -0.5, 86.823))
+                                v2.CFrame = CFrame.new(314.54, -0.5, 86.823)
+                                RS.Interaction.ClientIsDragging:FireServer(v)
+                                task.wait()
+                            end
+                        end)
+                        task.wait(1)
+                    end
+                end
+            end)
+            task.wait(2)
+        end
+    end
+    tp(oldpos)
+end
+
+-- ============================================================
+-- 树类型修改函数
+-- ============================================================
+local function modifyTreeType(targetType, newType)
+    local tool = getBestAxe(targetType)
+    if not tool then return false end
+
+    local treeCut = false
+    local listener
+    
+    listener = treeListener(targetType, function(tree)
+        tree:WaitForChild('Owner', 60)
+        tree.PrimaryPart = tree:FindFirstChild("WoodSection")
+        treeCut = true
+
+        if tree:FindFirstChild("TreeClass") then
+            tree.TreeClass.Value = newType
+            Notify("修改成功", "树类型已修改", 2)
+        end
+
+        task.spawn(function()
+            for i = 1, 60 do
+                RS.Interaction.ClientIsDragging:FireServer(tree)
+                task.wait()
+            end
+        end)
+        task.wait(0.1)
+        
+        if tree.PrimaryPart then
+            spawn(function()
+                for i = 1, 60 do
+                    tree:PivotTo(Config.treecutset or CFrame.new(0, 0, 0))
+                    task.wait()
+                end
+            end)
+        end
+
+        tp(Config.treecutset)
+        if listener then listener:Disconnect() end
+    end)
+
+    local tree = getBiggestTree(targetType)
+    if not tree then
+        Notify("错误", "没有找到目标树", 3)
+        if listener then listener:Disconnect() end
+        return false
+    end
+
+    local ws = tree:FindFirstChild("WoodSection")
+    if not ws then
+        Notify("错误", "树没有WoodSection", 3)
+        if listener then listener:Disconnect() end
+        return false
+    end
+
+    spawn(function()
+        local attempts = 0
+        while not treeCut and attempts < 100 do
+            tp(ws.CFrame + Vector3.new(3, 3, 0))
+            cutPart(tree.CutEvent, 1, 0.3, tool, targetType)
+            task.wait(0.1)
+            attempts = attempts + 1
+        end
+        if not treeCut then
+            Notify("超时", "修改树类型超时", 3)
+            if listener then listener:Disconnect() end
+        end
+    end)
+
+    return true
+end
+
+local function getAllTrees()
+    local trees = {}
+    for _, region in pairs(WS:GetChildren()) do
+        if region.Name == "TreeRegion" then
+            for _, tree in pairs(region:GetChildren()) do
+                if tree:FindFirstChild("TreeClass") and tree:FindFirstChild("WoodSection") then
+                    table.insert(trees, tree)
+                end
+            end
+        end
+    end
+    return trees
+end
+
+local function batchModifyTrees(targetType, newType)
+    local trees = getAllTrees()
+    local count = 0
+    for _, tree in pairs(trees) do
+        if tree.TreeClass.Value == targetType then
+            tree.TreeClass.Value = newType
+            count = count + 1
+            task.wait(0.05)
+        end
+    end
+    return count
+end
+
+-- ============================================================
+-- 环境功能
+-- ============================================================
+local function toggleDay(state)
+    Config.awaysday = state
+    if state then
+        task.spawn(function()
+            while Config.awaysday do
+                game:GetService("Lighting").TimeOfDay = "12:00:00"
+                task.wait(0.1)
+            end
+        end)
+    end
+end
+
+local function toggleNight(state)
+    Config.awaysdnight = state
+    if state then
+        task.spawn(function()
+            while Config.awaysdnight do
+                game:GetService("Lighting").TimeOfDay = "02:00:00"
+                task.wait(0.1)
+            end
+        end)
+    end
+end
+
+local function toggleFog(state)
+    Config.nofog = state
+    if state then
+        game:GetService("Lighting").FogEnd = 1000000
+    else
+        game:GetService("Lighting").FogEnd = 10000
+    end
+end
+
+local function toggleWaterWalk(state)
+    Config.waterwalk = state
+    for _, v in pairs(WS.Water:GetChildren()) do
+        if v:IsA("BasePart") then
+            v.CanCollide = state
+        end
+    end
+    for _, v in pairs(WS.Bridge.VerticalLiftBridge.WaterModel:GetChildren()) do
+        if v:IsA("BasePart") then
+            v.CanCollide = state
+        end
+    end
+end
+
+local function toggleLava(state)
+    for _, v in pairs(WS.Region_Volcano:GetDescendants()) do
+        if v.Name == "Lava" then
+            for _, k in pairs(v:GetChildren()) do
+                if k:IsA("BasePart") then
+                    k.Transparency = state and 1 or 0
+                end
+            end
+        end
+    end
+end
+
+local function toggleWater(state)
+    for _, v in pairs(WS.Water:GetChildren()) do
+        if v.Name == "Water" and v:IsA("BasePart") then
+            v.Transparency = state and 1 or 0
+        end
+    end
+end
+
+local function toggleBridge(state)
+    for _, v in pairs(WS.Bridge.VerticalLiftBridge.Lift:GetChildren()) do
+        if state then
+            v.CFrame = v.CFrame + Vector3.new(0, -26, 0)
+        else
+            v.CFrame = v.CFrame + Vector3.new(0, 26, 0)
+        end
+    end
+end
+
+local function applyChristmasTheme()
+    for _, v in pairs(WS:GetDescendants()) do
+        if v.Name == "Ground" or v.Name == "Sand" then
+            v.BrickColor = BrickColor.new("White")
+            v.Material = Enum.Material.Sand
+        end
+        if v.Name == "Slate" then
+            v.BrickColor = BrickColor.new("White")
+        end
+        if v.Name == "LeafPart" then
+            v.BrickColor = BrickColor.new("White")
+            v.Material = Enum.Material.Sand
+        end
+    end
+    Notify("完成", "已切换到圣诞节地图", 2)
+end
+
+local function applyAutumnTheme()
+    for _, v in pairs(WS:GetDescendants()) do
+        if v.Name == "Ground" or v.Name == "Sand" then
+            v.BrickColor = BrickColor.new("Burnt Sienna")
+            v.Material = Enum.Material.Sand
+        end
+        if v.Name == "Slate" then
+            v.BrickColor = BrickColor.new("Burnt Sienna")
+        end
+        if v.Name == "LeafPart" then
+            v.BrickColor = BrickColor.new("Burnt Sienna")
+            v.Material = Enum.Material.Sand
+        end
+    end
+    Notify("完成", "已切换到秋天地图", 2)
+end
+
+-- ============================================================
+-- 飞行功能
+-- ============================================================
+local flyConnection = nil
+local flyBV = nil
+local flyBG = nil
+
+local function toggleFly(state)
+    if state then
+        if LP.Character then
+            local hrp = LP.Character:FindFirstChild("HumanoidRootPart")
+            if hrp then
+                flyBV = Instance.new("BodyVelocity", hrp)
+                flyBV.MaxForce = Vector3.new(1, 1, 1) * 9e9
+                flyBV.Velocity = Vector3.new(0, 0, 0)
+                flyBG = Instance.new("BodyGyro", hrp)
+                flyBG.MaxTorque = Vector3.new(1, 1, 1) * 9e9
+                flyBG.P = 5000
+                flyBG.D = 500
+                
+                flyConnection = game:GetService("RunService").RenderStepped:Connect(function()
+                    if LP.Character and flyBV then
+                        local cam = WS.CurrentCamera
+                        local direction = Vector3.new(0, 0, 0)
+                        if UIS:IsKeyDown(Enum.KeyCode.W) then direction = direction + cam.CFrame.LookVector end
+                        if UIS:IsKeyDown(Enum.KeyCode.S) then direction = direction - cam.CFrame.LookVector end
+                        if UIS:IsKeyDown(Enum.KeyCode.A) then direction = direction - cam.CFrame.RightVector end
+                        if UIS:IsKeyDown(Enum.KeyCode.D) then direction = direction + cam.CFrame.RightVector end
+                        if UIS:IsKeyDown(Enum.KeyCode.Space) then direction = direction + Vector3.new(0, 1, 0) end
+                        if UIS:IsKeyDown(Enum.KeyCode.LeftShift) then direction = direction - Vector3.new(0, 1, 0) end
+                        flyBV.Velocity = direction * 50
+                        flyBG.CFrame = cam.CFrame
+                    end
+                end)
+            end
+        end
+    else
+        if flyConnection then
+            flyConnection:Disconnect()
+            flyConnection = nil
+        end
+        if flyBV then
+            flyBV:Destroy()
+            flyBV = nil
+        end
+        if flyBG then
+            flyBG:Destroy()
+            flyBG = nil
+        end
