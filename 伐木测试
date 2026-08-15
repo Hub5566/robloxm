@@ -1,12 +1,7 @@
--- 加载UI框架（使用可靠链接）
+-- 加载UI框架
 local WindUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Hub5566/robloxm/main/ui%20%201"))()
 if not WindUI then
-    -- 备用链接
-    WindUI = loadstring(game:HttpGet("https://pastebin.com/raw/DW3eJwe6"))()
-end
-
-if not WindUI then
-    print("❌ WindUI加载失败，请检查网络")
+    print("❌ WindUI加载失败")
     return
 end
 
@@ -557,13 +552,13 @@ local function stopMoney()
 end
 
 -- ============================================================
--- 创建UI标签页
+-- 创建UI标签页 (修复：使用表参数 { Title = "xxx" })
 -- ============================================================
 
 -- ===== 砍树标签页 =====
-local MainTab = Window:Tab("砍树")
+local MainTab = Window:Tab({ Title = "砍树" })
 
-local TreeSection = MainTab:Section("选择树类型")
+local TreeSection = MainTab:Section({ Title = "选择树类型" })
 TreeSection:Dropdown({
     Title = "选择树",
     Values = TreeOptions,
@@ -574,7 +569,7 @@ TreeSection:Dropdown({
     end
 })
 
-local ControlSection = MainTab:Section("砍树控制")
+local ControlSection = MainTab:Section({ Title = "砍树控制" })
 ControlSection:Toggle({
     Title = "自动砍树",
     Desc = "自动砍伐选中的树",
@@ -642,8 +637,8 @@ ControlSection:Button({
 })
 
 -- ===== 赚钱标签页 =====
-local MoneyTab = Window:Tab("赚钱")
-local MoneySection = MoneyTab:Section("自动赚钱")
+local MoneyTab = Window:Tab({ Title = "赚钱" })
+local MoneySection = MoneyTab:Section({ Title = "自动赚钱" })
 
 MoneySection:Toggle({
     Title = "自动赚钱",
@@ -662,8 +657,8 @@ MoneySection:Toggle({
 })
 
 -- ===== 卖木头标签页 =====
-local SellTab = Window:Tab("卖木头")
-local SellSection = SellTab:Section("木头管理")
+local SellTab = Window:Tab({ Title = "卖木头" })
+local SellSection = SellTab:Section({ Title = "木头管理" })
 
 SellSection:Button({
     Title = "卖所有木板",
@@ -727,9 +722,9 @@ SellSection:Button({
 })
 
 -- ===== 修改树标签页 =====
-local ModTreeTab = Window:Tab("修改树")
+local ModTreeTab = Window:Tab({ Title = "修改树" })
 
-local ModTargetSection = ModTreeTab:Section("选择要修改的树")
+local ModTargetSection = ModTreeTab:Section({ Title = "选择要修改的树" })
 ModTargetSection:Dropdown({
     Title = "目标树类型",
     Values = TreeOptions,
@@ -740,7 +735,7 @@ ModTargetSection:Dropdown({
     end
 })
 
-local NewTypeSection = ModTreeTab:Section("修改为")
+local NewTypeSection = ModTreeTab:Section({ Title = "修改为" })
 NewTypeSection:Dropdown({
     Title = "新树类型",
     Values = TreeOptions,
@@ -751,7 +746,7 @@ NewTypeSection:Dropdown({
     end
 })
 
-local ModActionSection = ModTreeTab:Section("操作")
+local ModActionSection = ModTreeTab:Section({ Title = "操作" })
 ModActionSection:Button({
     Title = "单棵修改",
     Desc = "砍一棵目标树并修改类型",
@@ -813,9 +808,9 @@ ModActionSection:Button({
 })
 
 -- ===== 传送标签页 =====
-local TeleportTab = Window:Tab("传送")
+local TeleportTab = Window:Tab({ Title = "传送" })
 
-local TeleportSection = TeleportTab:Section("传送位置")
+local TeleportSection = TeleportTab:Section({ Title = "传送位置" })
 TeleportSection:Dropdown({
     Title = "选择传送位置",
     Values = TeleportOptions,
@@ -847,9 +842,9 @@ TeleportSection:Button({
 })
 
 -- ===== 汽车传送标签页 =====
-local CarTab = Window:Tab("汽车传送")
+local CarTab = Window:Tab({ Title = "汽车传送" })
 
-local CarSection = CarTab:Section("汽车传送位置")
+local CarSection = CarTab:Section({ Title = "汽车传送位置" })
 CarSection:Dropdown({
     Title = "选择传送位置",
     Values = TeleportOptions,
@@ -881,9 +876,9 @@ CarSection:Button({
 })
 
 -- ===== 玩家标签页 =====
-local PlayerTab = Window:Tab("玩家")
+local PlayerTab = Window:Tab({ Title = "玩家" })
 
-local PlayerSection = PlayerTab:Section("玩家设置")
+local PlayerSection = PlayerTab:Section({ Title = "玩家设置" })
 
 PlayerSection:Slider({
     Title = "移动速度",
@@ -934,9 +929,9 @@ PlayerSection:Button({
 })
 
 -- ===== 物品传送标签页 =====
-local ItemTab = Window:Tab("物品传送")
+local ItemTab = Window:Tab({ Title = "物品传送" })
 
-local ItemSection = ItemTab:Section("物品传送设置")
+local ItemSection = ItemTab:Section({ Title = "物品传送设置" })
 
 ItemSection:Input({
     Title = "目标玩家名称",
@@ -1042,9 +1037,9 @@ ItemSection:Button({
 })
 
 -- ===== 存档标签页 =====
-local SaveTab = Window:Tab("存档")
+local SaveTab = Window:Tab({ Title = "存档" })
 
-local SaveSection = SaveTab:Section("存档管理")
+local SaveSection = SaveTab:Section({ Title = "存档管理" })
 
 SaveSection:Input({
     Title = "存档编号",
@@ -1086,9 +1081,9 @@ SaveSection:Button({
 })
 
 -- ===== 环境标签页 =====
-local EnvTab = Window:Tab("环境")
+local EnvTab = Window:Tab({ Title = "环境" })
 
-local EnvSection = EnvTab:Section("环境设置")
+local EnvSection = EnvTab:Section({ Title = "环境设置" })
 
 EnvSection:Toggle({
     Title = "终日白天",
@@ -1269,9 +1264,9 @@ EnvSection:Input({
 })
 
 -- ===== 工具标签页 =====
-local ToolTab = Window:Tab("工具")
+local ToolTab = Window:Tab({ Title = "工具" })
 
-local ToolSection = ToolTab:Section("辅助工具")
+local ToolSection = ToolTab:Section({ Title = "辅助工具" })
 
 ToolSection:Button({
     Title = "重置速度",
@@ -1320,9 +1315,9 @@ ToolSection:Button({
 })
 
 -- ===== 娱乐标签页 =====
-local FunTab = Window:Tab("娱乐")
+local FunTab = Window:Tab({ Title = "娱乐" })
 
-local FunSection = FunTab:Section("娱乐功能")
+local FunSection = FunTab:Section({ Title = "娱乐功能" })
 
 FunSection:Button({
     Title = "安全自杀",
