@@ -129,7 +129,42 @@ local Config = {
     cswjia = "",
     itemset = nil,
     bringamount = 1,
+    cskais = false,
+    xzemuban = false,
+    kuangxiu = nil,
 }
+
+-- ============================================================
+-- 物品传送框选UI
+-- ============================================================
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "ItemSelectGui"
+ScreenGui.Parent = game.CoreGui
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+local Frame = Instance.new("Frame")
+Frame.Parent = ScreenGui
+Frame.BackgroundColor3 = Color3.fromRGB(4, 0, 255)
+Frame.BackgroundTransparency = 0.8
+Frame.BorderColor3 = Color3.new(0.09, 0.137, 0.776)
+Frame.BorderSizePixel = 2
+Frame.Position = UDim2.new(0, 0, 0, 0)
+Frame.Size = UDim2.new(0, 0, 0, 0)
+Frame.Visible = false
+
+function is_in_frame(screenpos, frame)
+    local xPos = frame.AbsolutePosition.X
+    local yPos = frame.AbsolutePosition.Y
+    local xSize = frame.AbsoluteSize.X
+    local ySize = frame.AbsoluteSize.Y
+    
+    local check1 = screenpos.X >= xPos and screenpos.X <= xPos + xSize
+    local check3 = screenpos.Y >= yPos and screenpos.Y <= yPos + ySize
+    local check2 = screenpos.X <= xPos and screenpos.X >= xPos + xSize
+    local check4 = screenpos.Y <= yPos and screenpos.Y >= yPos + ySize
+    
+    return (check1 and check3) or (check2 and check3) or (check1 and check4) or (check2 and check4)
+end
 
 -- ============================================================
 -- 工具函数
@@ -552,7 +587,7 @@ local function stopMoney()
 end
 
 -- ============================================================
--- 创建UI标签页 (修复：使用表参数 { Title = "xxx" })
+-- 创建UI标签页
 -- ============================================================
 
 -- ===== 砍树标签页 =====
@@ -928,7 +963,9 @@ PlayerSection:Button({
     end
 })
 
--- ===== 物品传送标签页 =====
+-- ============================================================
+-- ===== 物品传送标签页（完整版 - 所有功能） =====
+-- ============================================================
 local ItemTab = Window:Tab({ Title = "物品传送" })
 
 local ItemSection = ItemTab:Section({ Title = "物品传送设置" })
@@ -984,8 +1021,414 @@ ItemSection:Button({
     end
 })
 
+-- ========== 批量选择功能 ==========
+
 ItemSection:Button({
-    Title = "获得物品传送工具",
+    Title = "📦 批量选择相同物品",
+    Desc = "点击一个物品，自动选择所有相同类型的物品",
+    Callback = function()
+        if Config.cswjia == "" then
+            Notify("错误", "请先输入目标玩家名称", 3)
+            return
+        end
+        
+        Notify("提示", "点击一个物品来选择所有相同类型", 3)
+        local done = false
+        local conn = Mouse.Button1Up:Connect(function()
+            local clicked = Mouse.Target
+            if not clicked then return end
+            
+            local item = clicked.Parent
+            if not item:FindFirstChild("Owner") then
+                item = item.Parent
+                if not item or not item:FindFirstChild("Owner") then
+                    Notify("错误", "请点击一个物品", 2)
+                    return
+                end
+            end
+            
+            if tostring(item.Owner.Value) ~= Config.cswjia then
+                Notify("错误", "该物品不属于目标玩家", 2)
+                return
+            end
+            
+            local itemIdentifier = nil
+            local itemType = nil
+            
+            if item:FindFirstChild("PurchasedBoxItemName") then
+                itemIdentifier = item.PurchasedBoxItemName.Value
+                itemType = "PurchasedBoxItemName"
+            elseif item:FindFirstChild("ItemName") then
+                itemIdentifier = item.ItemName.Value
+                itemType = "ItemName"
+            elseif item:FindFirstChild("Type") then
+                itemIdentifier = item.Type.Value
+                itemType = "Type"
+            elseif item:FindFirstChild("ToolName") then
+                itemIdentifier = item.ToolName.Value
+                itemType = "ToolName"
+            elseif item:FindFirstChild("TreeClass") then
+                itemIdentifier = item.TreeClass.Value
+                itemType = "TreeClass"
+            elseif item:FindFirstChild("WoodSection") then
+                itemIdentifier = "WoodSection"
+                itemType = "WoodSection"
+            else
+                Notify("错误", "无法识别该物品类型", 2)
+                return
+            end
+            
+            for _, v in pairs(WS.PlayerModels:GetChildren()) do
+                if v:FindFirstChild("SelectionBox") then
+                    v.SelectionBox:Destroy()
+                end
+            end
+            
+            local count = 0
+            for _, v in pairs(WS.PlayerModels:GetChildren()) do
+                if v:FindFirstChild("Owner") and tostring(v.Owner.Value) == Config.cswjia then
+                    local match = false
+                    
+                    if itemType == "PurchasedBoxItemName" and v:FindFirstChild("PurchasedBoxItemName") then
+                        if v.PurchasedBoxItemName.Value == itemIdentifier then match = true end
+                    elseif itemType == "ItemName" and v:FindFirstChild("ItemName") then
+                        if v.ItemName.Value == itemIdentifier then match = true end
+                    elseif itemType == "Type" and v:FindFirstChild("Type") then
+                        if v.Type.Value == itemIdentifier then match = true end
+                    elseif itemType == "ToolName" and v:FindFirstChild("ToolName") then
+                        if v.ToolName.Value == itemIdentifier then match = true end
+                    elseif itemType == "TreeClass" and v:FindFirstChild("TreeClass") then
+                        if v.TreeClass.Value == itemIdentifier then match = true end
+                    elseif itemType == "WoodSection" and v:FindFirstChild("WoodSection") then
+                        match = true
+                    end
+                    
+                    if match then
+                        local SB = Instance.new("SelectionBox", v)
+                        SB.Adornee = v
+                        SB.Color3 = Color3.fromRGB(0, 255, 0)
+                        count = count + 1
+                    end
+                end
+            end
+            
+            done = true
+            Notify("完成", "已选择 " .. count .. " 个相同类型的物品", 3)
+            conn:Disconnect()
+        end)
+        
+        repeat task.wait() until done
+    end
+})
+
+ItemSection:Button({
+    Title = "🏷️ 批量选择相同名称",
+    Desc = "点击一个物品，选择所有同名物品（更精确）",
+    Callback = function()
+        if Config.cswjia == "" then
+            Notify("错误", "请先输入目标玩家名称", 3)
+            return
+        end
+        
+        Notify("提示", "点击一个物品来选择所有同名物品", 3)
+        local done = false
+        local conn = Mouse.Button1Up:Connect(function()
+            local clicked = Mouse.Target
+            if not clicked then return end
+            
+            local item = clicked.Parent
+            if not item:FindFirstChild("Owner") then
+                item = item.Parent
+                if not item or not item:FindFirstChild("Owner") then
+                    Notify("错误", "请点击一个物品", 2)
+                    return
+                end
+            end
+            
+            if tostring(item.Owner.Value) ~= Config.cswjia then
+                Notify("错误", "该物品不属于目标玩家", 2)
+                return
+            end
+            
+            local itemName = nil
+            local nameType = nil
+            
+            if item:FindFirstChild("PurchasedBoxItemName") then
+                itemName = item.PurchasedBoxItemName.Value
+                nameType = "PurchasedBoxItemName"
+            elseif item:FindFirstChild("ItemName") then
+                itemName = item.ItemName.Value
+                nameType = "ItemName"
+            elseif item:FindFirstChild("ToolName") then
+                itemName = item.ToolName.Value
+                nameType = "ToolName"
+            elseif item:FindFirstChild("Type") then
+                itemName = item.Type.Value
+                nameType = "Type"
+            elseif item:FindFirstChild("TreeClass") then
+                itemName = item.TreeClass.Value
+                nameType = "TreeClass"
+            else
+                Notify("错误", "无法识别该物品名称", 2)
+                return
+            end
+            
+            for _, v in pairs(WS.PlayerModels:GetChildren()) do
+                if v:FindFirstChild("SelectionBox") then
+                    v.SelectionBox:Destroy()
+                end
+            end
+            
+            local count = 0
+            for _, v in pairs(WS.PlayerModels:GetChildren()) do
+                if v:FindFirstChild("Owner") and tostring(v.Owner.Value) == Config.cswjia then
+                    local match = false
+                    
+                    if nameType == "PurchasedBoxItemName" and v:FindFirstChild("PurchasedBoxItemName") then
+                        if v.PurchasedBoxItemName.Value == itemName then match = true end
+                    elseif nameType == "ItemName" and v:FindFirstChild("ItemName") then
+                        if v.ItemName.Value == itemName then match = true end
+                    elseif nameType == "ToolName" and v:FindFirstChild("ToolName") then
+                        if v.ToolName.Value == itemName then match = true end
+                    elseif nameType == "Type" and v:FindFirstChild("Type") then
+                        if v.Type.Value == itemName then match = true end
+                    elseif nameType == "TreeClass" and v:FindFirstChild("TreeClass") then
+                        if v.TreeClass.Value == itemName then match = true end
+                    end
+                    
+                    if match then
+                        local SB = Instance.new("SelectionBox", v)
+                        SB.Adornee = v
+                        SB.Color3 = Color3.fromRGB(0, 255, 255)
+                        count = count + 1
+                    end
+                end
+            end
+            
+            done = true
+            Notify("完成", "已选择 " .. count .. " 个同名物品: " .. itemName, 3)
+            conn:Disconnect()
+        end)
+        
+        repeat task.wait() until done
+    end
+})
+
+ItemSection:Button({
+    Title = "🎨 按颜色批量选择",
+    Desc = "点击一个物品，选择所有相同颜色的物品",
+    Callback = function()
+        if Config.cswjia == "" then
+            Notify("错误", "请先输入目标玩家名称", 3)
+            return
+        end
+        
+        Notify("提示", "点击一个物品来选择所有相同颜色的物品", 3)
+        local done = false
+        local conn = Mouse.Button1Up:Connect(function()
+            local clicked = Mouse.Target
+            if not clicked then return end
+            
+            local item = clicked.Parent
+            if not item:FindFirstChild("Owner") then
+                item = item.Parent
+                if not item or not item:FindFirstChild("Owner") then
+                    Notify("错误", "请点击一个物品", 2)
+                    return
+                end
+            end
+            
+            if tostring(item.Owner.Value) ~= Config.cswjia then
+                Notify("错误", "该物品不属于目标玩家", 2)
+                return
+            end
+            
+            local itemColor = nil
+            local mainPart = item:FindFirstChild("Main")
+            if mainPart then
+                itemColor = mainPart.BrickColor
+            end
+            
+            if not itemColor then
+                for _, v in pairs(item:GetChildren()) do
+                    if v:IsA("BasePart") and v.BrickColor and v.BrickColor ~= BrickColor.new("Medium stone grey") then
+                        itemColor = v.BrickColor
+                        break
+                    end
+                end
+            end
+            
+            if not itemColor then
+                Notify("错误", "无法识别该物品颜色", 2)
+                return
+            end
+            
+            for _, v in pairs(WS.PlayerModels:GetChildren()) do
+                if v:FindFirstChild("SelectionBox") then
+                    v.SelectionBox:Destroy()
+                end
+            end
+            
+            local count = 0
+            for _, v in pairs(WS.PlayerModels:GetChildren()) do
+                if v:FindFirstChild("Owner") and tostring(v.Owner.Value) == Config.cswjia then
+                    if v:FindFirstChild("Main") and v.Main.BrickColor == itemColor then
+                        local SB = Instance.new("SelectionBox", v)
+                        SB.Adornee = v
+                        SB.Color3 = Color3.fromRGB(255, 255, 0)
+                        count = count + 1
+                    end
+                end
+            end
+            
+            done = true
+            Notify("完成", "已选择 " .. count .. " 个同色物品: " .. itemColor.Name, 3)
+            conn:Disconnect()
+        end)
+        
+        repeat task.wait() until done
+    end
+})
+
+ItemSection:Button({
+    Title = "📂 按分类批量选择",
+    Desc = "选择所有相同分类的物品（结构/工具/蓝图等）",
+    Callback = function()
+        if Config.cswjia == "" then
+            Notify("错误", "请先输入目标玩家名称", 3)
+            return
+        end
+        
+        local categories = {}
+        for _, v in pairs(WS.PlayerModels:GetChildren()) do
+            if v:FindFirstChild("Owner") and tostring(v.Owner.Value) == Config.cswjia then
+                if v:FindFirstChild("Type") then
+                    local cat = v.Type.Value
+                    if not categories[cat] then
+                        categories[cat] = true
+                    end
+                end
+            end
+        end
+        
+        local catList = {}
+        for cat, _ in pairs(categories) do
+            table.insert(catList, cat)
+        end
+        
+        if #catList == 0 then
+            Notify("错误", "没有找到可分类的物品", 3)
+            return
+        end
+        
+        local msg = "请选择分类:\n"
+        for i, cat in ipairs(catList) do
+            msg = msg .. i .. ". " .. cat .. "\n"
+        end
+        msg = msg .. "输入数字选择"
+        
+        Notify("分类选择", msg, 5)
+        
+        local input = Instance.new("TextBox")
+        input.Size = UDim2.new(0, 200, 0, 30)
+        input.Position = UDim2.new(0.5, -100, 0.5, -15)
+        input.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+        input.TextColor3 = Color3.fromRGB(255, 255, 255)
+        input.PlaceholderText = "输入数字 (1-" .. #catList .. ")"
+        input.Font = Enum.Font.Gotham
+        input.TextSize = 16
+        input.Parent = game.CoreGui
+        
+        input.FocusLost:Connect(function(enterPressed)
+            if enterPressed then
+                local num = tonumber(input.Text)
+                if num and num >= 1 and num <= #catList then
+                    local selectedCat = catList[num]
+                    
+                    for _, v in pairs(WS.PlayerModels:GetChildren()) do
+                        if v:FindFirstChild("SelectionBox") then
+                            v.SelectionBox:Destroy()
+                        end
+                    end
+                    
+                    local count = 0
+                    for _, v in pairs(WS.PlayerModels:GetChildren()) do
+                        if v:FindFirstChild("Owner") and tostring(v.Owner.Value) == Config.cswjia then
+                            if v:FindFirstChild("Type") and v.Type.Value == selectedCat then
+                                local SB = Instance.new("SelectionBox", v)
+                                SB.Adornee = v
+                                SB.Color3 = Color3.fromRGB(255, 0, 255)
+                                count = count + 1
+                            end
+                        end
+                    end
+                    
+                    Notify("完成", "已选择 " .. count .. " 个分类为 " .. selectedCat .. " 的物品", 3)
+                else
+                    Notify("错误", "无效的数字", 2)
+                end
+                input:Destroy()
+            end
+        end)
+        
+        task.delay(10, function()
+            if input then input:Destroy() end
+        end)
+    end
+})
+
+ItemSection:Button({
+    Title = "✅ 选择所有物品",
+    Desc = "选择目标玩家的所有物品",
+    Callback = function()
+        if Config.cswjia == "" then
+            Notify("错误", "请先输入目标玩家名称", 3)
+            return
+        end
+        
+        for _, v in pairs(WS.PlayerModels:GetChildren()) do
+            if v:FindFirstChild("SelectionBox") then
+                v.SelectionBox:Destroy()
+            end
+        end
+        
+        local count = 0
+        for _, v in pairs(WS.PlayerModels:GetChildren()) do
+            if v:FindFirstChild("Owner") and tostring(v.Owner.Value) == Config.cswjia then
+                local SB = Instance.new("SelectionBox", v)
+                SB.Adornee = v
+                SB.Color3 = Color3.fromRGB(0, 255, 0)
+                count = count + 1
+            end
+        end
+        
+        if count > 0 then
+            Notify("完成", "已选择 " .. count .. " 个物品", 3)
+        else
+            Notify("提示", "目标玩家没有物品", 2)
+        end
+    end
+})
+
+ItemSection:Button({
+    Title = "❌ 取消所有选择",
+    Desc = "取消所有选中的物品",
+    Callback = function()
+        local count = 0
+        for _, v in pairs(WS.PlayerModels:GetChildren()) do
+            if v:FindFirstChild("SelectionBox") then
+                v.SelectionBox:Destroy()
+                count = count + 1
+            end
+        end
+        Notify("完成", "已取消 " .. count .. " 个选择", 2)
+    end
+})
+
+-- ========== 传送功能 ==========
+
+ItemSection:Button({
+    Title = "🔧 获得物品传送工具",
     Desc = "点击物品传送到传送点",
     Callback = function()
         if Config.itemset == nil then
@@ -1033,6 +1476,134 @@ ItemSection:Button({
             end
         end)
         Notify("工具", "已获得物品传送工具（点击物品传送）", 2)
+    end
+})
+
+ItemSection:Button({
+    Title = "🚀 传送所有选中物品",
+    Desc = "传送所有选中的物品到传送点",
+    Callback = function()
+        if Config.itemset == nil then
+            Notify("错误", "请先设置传送点", 3)
+            return
+        end
+        if Config.cswjia == "" then
+            Notify("错误", "请先输入目标玩家名称", 3)
+            return
+        end
+        
+        Config.cskais = true
+        local OldPos = LP.Character.HumanoidRootPart.CFrame
+        local count = 0
+        
+        for _, v in pairs(WS.PlayerModels:GetChildren()) do
+            if Config.cskais == false then break end
+            if v:FindFirstChild("Owner") and tostring(v.Owner.Value) == Config.cswjia then
+                if v:FindFirstChild("SelectionBox") then
+                    if v:FindFirstChild("Main") then
+                        if (LP.Character.HumanoidRootPart.CFrame.p - v.Main.CFrame.p).Magnitude > 5 then
+                            tp(v.Main.CFrame + Vector3.new(4, 0, 4))
+                        end
+                        for i = 1, 30 do
+                            if Config.cskais == false then break end
+                            RS.Interaction.ClientIsDragging:FireServer(v)
+                            v:PivotTo(Config.itemset)
+                            RS.Interaction.ClientIsDragging:FireServer(v)
+                            task.wait()
+                        end
+                        v.SelectionBox:Destroy()
+                        count = count + 1
+                    elseif v:FindFirstChild("WoodSection") then
+                        tp(v.WoodSection.CFrame + Vector3.new(4, 0, 4))
+                        for i = 1, 70 do
+                            if Config.cskais == false then break end
+                            RS.Interaction.ClientIsDragging:FireServer(v)
+                            v.WoodSection.CFrame = Config.itemset * CFrame.Angles(math.rad(90), 0, 90)
+                            RS.Interaction.ClientIsDragging:FireServer(v)
+                            task.wait()
+                        end
+                        v.SelectionBox:Destroy()
+                        count = count + 1
+                    end
+                end
+            end
+        end
+        
+        tp(OldPos)
+        Config.cskais = false
+        Notify("完成", "已传送 " .. count .. " 个物品", 3)
+    end
+})
+
+ItemSection:Button({
+    Title = "⏹ 停止传送",
+    Desc = "停止正在进行的传送",
+    Callback = function()
+        Config.cskais = false
+        Notify("停止", "已停止传送", 2)
+    end
+})
+
+-- ========== 框选功能 ==========
+
+ItemSection:Toggle({
+    Title = "框选物品",
+    Desc = "拖拽框选多个物品",
+    Value = false,
+    Callback = function(state)
+        if state then
+            Config.kuangxiu = UIS.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    Frame.Visible = true
+                    Frame.Position = UDim2.new(0, Mouse.X, 0, Mouse.Y)
+                    while UIS:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) do
+                        game:GetService("RunService").RenderStepped:Wait()
+                        Frame.Size = UDim2.new(0, Mouse.X, 0, Mouse.Y) - Frame.Position
+                        
+                        for _, v in pairs(WS.PlayerModels:GetChildren()) do
+                            if Config.xzemuban and v:FindFirstChild("Owner") and tostring(v.Owner.Value) == Config.cswjia and v:FindFirstChild("WoodSection") then
+                                local screenpos, visible = WS.CurrentCamera:WorldToScreenPoint(v.WoodSection.CFrame.p)
+                                if visible and is_in_frame(screenpos, Frame) then
+                                    if not v:FindFirstChild("SelectionBox") then
+                                        local SB = Instance.new("SelectionBox", v)
+                                        SB.Adornee = v
+                                        SB.Color3 = Color3.fromRGB(0, 255, 0)
+                                    end
+                                end
+                            end
+                            if v:FindFirstChild("Owner") and tostring(v.Owner.Value) == Config.cswjia and v:FindFirstChild("Main") then
+                                local screenpos, visible = WS.CurrentCamera:WorldToScreenPoint(v.Main.CFrame.p)
+                                if visible and is_in_frame(screenpos, Frame) then
+                                    if not v:FindFirstChild("SelectionBox") then
+                                        local SB = Instance.new("SelectionBox", v)
+                                        SB.Adornee = v
+                                        SB.Color3 = Color3.fromRGB(0, 255, 0)
+                                    end
+                                end
+                            end
+                        end
+                    end
+                    Frame.Size = UDim2.new(0, 1, 0, 1)
+                    Frame.Visible = false
+                end
+            end)
+        else
+            if Config.kuangxiu then
+                Config.kuangxiu:Disconnect()
+                Config.kuangxiu = nil
+            end
+            Frame.Visible = false
+            Notify("关闭", "已关闭框选模式", 2)
+        end
+    end
+})
+
+ItemSection:Toggle({
+    Title = "包含木板",
+    Desc = "框选时包含木板",
+    Value = false,
+    Callback = function(state)
+        Config.xzemuban = state
     end
 })
 
