@@ -42,6 +42,54 @@ local TweenService = game:GetService("TweenService")
 local ContextActionService = game:GetService("ContextActionService")
 local RunService = game:GetService("RunService")
 local VirtualUser = game:GetService("VirtualUser")
+
+-- ============================================================
+-- 【重要】配置表 提前定义！修复角色重生事件nil报错
+-- ============================================================
+local Config = {
+    -- 砍树配置
+    cuttreeselect = "Generic",
+    autofarm = false,
+    autofarm1 = false,
+    autosell = false,
+    treecutset = nil,
+    farmLoop = nil,
+    sellLoop = nil,
+    moneyLoop = nil,
+    autoCollect = false,
+    collectLoop = nil,
+
+    -- 玩家配置
+    speed = 16,
+    jumpPower = 50,
+    flyEnabled = false,
+    noclipEnabled = false,
+    infiniteJump = false,
+
+    -- 保护配置
+    antiRagdoll = false,
+    antiAFK = false,
+    antiVoid = false,
+    antiFling = false,
+    axeRecovery = false,
+
+    -- 世界配置
+    treeCam = false,
+    espEnabled = false,
+    highlightColor = Color3.fromRGB(255, 0, 0),
+}
+-- 连接存储，防止多次Connect内存泄漏
+local Conns = {
+    antiRagdollConn = nil,
+    afkConn = nil,
+    antiVoidConn = nil,
+    antiFlingConn = nil,
+    noclipConn = nil,
+    infJumpConn = nil,
+    treeCamConn = nil,
+    espConn = nil,
+}
+
 -- 角色重生监听，修复重生后功能失效
 local charConn
 local function setupCharacterEvents()
@@ -53,6 +101,7 @@ local function setupCharacterEvents()
     end)
 end
 setupCharacterEvents()
+
 -- ============================================================
 -- 树类型映射表
 -- ============================================================
@@ -81,52 +130,7 @@ for _, data in ipairs(TreeData) do
     table.insert(TreeList, data.name)
     TreeMap[data.name] = data.id
 end
--- ============================================================
--- 配置表
--- ============================================================
-local Config = {
-    -- 砍树配置
-    cuttreeselect = "Generic",
-    autofarm = false,
-    autofarm1 = false,
-    autosell = false,
-    treecutset = nil,
-    farmLoop = nil,
-    sellLoop = nil,
-    moneyLoop = nil,
-    autoCollect = false,
-    collectLoop = nil,
-    
-    -- 玩家配置
-    speed = 16,
-    jumpPower = 50,
-    flyEnabled = false,
-    noclipEnabled = false,
-    infiniteJump = false,
-    
-    -- 保护配置
-    antiRagdoll = false,
-    antiAFK = false,
-    antiVoid = false,
-    antiFling = false,
-    axeRecovery = false,
-    
-    -- 世界配置
-    treeCam = false,
-    espEnabled = false,
-    highlightColor = Color3.fromRGB(255, 0, 0),
-}
--- 连接存储，防止多次Connect内存泄漏
-local Conns = {
-    antiRagdollConn = nil,
-    afkConn = nil,
-    antiVoidConn = nil,
-    antiFlingConn = nil,
-    noclipConn = nil,
-    infJumpConn = nil,
-    treeCamConn = nil,
-    espConn = nil,
-}
+
 -- ============================================================
 -- 工具函数
 -- ============================================================
@@ -159,7 +163,7 @@ local function getBestAxe(treeClass)
         Notify("错误", "你需要斧头", 3)
         return nil
     end
-    
+
     if treeClass == "LoneCave" then
         for _, v in pairs(tools) do
             if v.ToolName.Value == "EndTimesAxe" then
@@ -169,7 +173,7 @@ local function getBestAxe(treeClass)
         Notify("错误", "幻影木需要末日斧头", 3)
         return nil
     end
-    
+
     local sorted = {}
     for _, v in pairs(tools) do
         local stats = getToolStats(v)
@@ -181,7 +185,7 @@ local function getBestAxe(treeClass)
     table.sort(sorted, function(a, b)
         return a.damage > b.damage
     end)
-    
+
     return sorted[1].tool
 end
 local function cutPart(event, section, height, tool, treeClass)
@@ -244,7 +248,7 @@ local function getNearestTeleport()
     if not LP.Character then return nil end
     local hrp = LP.Character:FindFirstChild("HumanoidRootPart")
     if not hrp then return nil end
-    
+
     for _, v in pairs(WS:GetChildren()) do
         if v:IsA("Model") and v:FindFirstChild("HumanoidRootPart") then
             local dist = (hrp.Position - v.HumanoidRootPart.Position).Magnitude
@@ -264,7 +268,7 @@ local function bringTree(treeClass)
     if not tool then return false end
     local treeCut = false
     local listener
-    
+
     listener = treeListener(treeClass, function(tree)
         tree:WaitForChild('Owner', 60)
         tree.PrimaryPart = tree:FindFirstChild("WoodSection")
@@ -272,11 +276,11 @@ local function bringTree(treeClass)
         task.spawn(function()
             for i = 1, 60 do
                 RS.Interaction.ClientIsDragging:FireServer(tree)
-                task.wait(0.05) -- 降低remote频率，防反作弊
+                task.wait(0.05)
             end
         end)
         task.wait(0.1)
-        
+
         if tree.PrimaryPart then
             task.spawn(function()
                 for i = 1, 60 do
@@ -447,7 +451,7 @@ local function toggleFly(state)
     if not char then return end
     local hrp = char:FindFirstChild("HumanoidRootPart")
     if not hrp then return end
-    
+
     if state then
         if not flyVel then
             flyVel = Instance.new("BodyVelocity")
@@ -474,7 +478,7 @@ UserInputService.InputBegan:Connect(function(input, processed)
     if not processed and Config.flyEnabled and LP.Character then
         local hrp = LP.Character:FindFirstChild("HumanoidRootPart")
         if not hrp or not flyVel then return end
-        
+
         local moveVec = Vector3.new(0, 0, 0)
         if input.KeyCode == Enum.KeyCode.W then moveVec = moveVec + hrp.CFrame.LookVector * flySpeed end
         if input.KeyCode == Enum.KeyCode.S then moveVec = moveVec - hrp.CFrame.LookVector * flySpeed end
@@ -482,7 +486,7 @@ UserInputService.InputBegan:Connect(function(input, processed)
         if input.KeyCode == Enum.KeyCode.D then moveVec = moveVec + hrp.CFrame.RightVector * flySpeed end
         if input.KeyCode == Enum.KeyCode.Space then moveVec = moveVec + Vector3.new(0, flySpeed, 0) end
         if input.KeyCode == Enum.KeyCode.LeftShift then moveVec = moveVec - Vector3.new(0, flySpeed, 0) end
-        
+
         flyVel.Velocity = moveVec
     end
 end)
@@ -696,7 +700,7 @@ local function toggleESP(state)
         highlightFolder = Instance.new("Folder")
         highlightFolder.Name = "DynxeESP"
         highlightFolder.Parent = CoreGui
-        
+
         Conns.espConn = RunService.Heartbeat:Connect(function()
             for _, tree in pairs(WS.LogModels:GetChildren()) do
                 if tree:FindFirstChild("WoodSection") then
@@ -741,7 +745,7 @@ local dupeLoop = nil
 local function startDuplication(itemName, count)
     if duplicationEnabled then return end
     duplicationEnabled = true
-    
+
     Notify("复制", "正在复制物品: " .. itemName, 3)
     dupeLoop = task.spawn(function()
         local attempts = 0
@@ -1042,11 +1046,13 @@ ToolSection:Button({
 local PlayerSection = ToolTab:Section({
     Title = "玩家修改"
 })
--- ==========【已修复Slider语法】 ==========
+-- 【修复Slider参数 WindUI语法 Min Max Default】
 PlayerSection:Slider({
     Title = "移动速度",
     Desc = "修改玩家移动速度",
-    Value = {Min = 0, Max = 200, Default = 16},
+    Min = 0,
+    Max = 200,
+    Default = 16,
     Callback = function(value)
         setSpeed(value)
     end
@@ -1054,7 +1060,9 @@ PlayerSection:Slider({
 PlayerSection:Slider({
     Title = "跳跃高度",
     Desc = "修改玩家跳跃高度",
-    Value = {Min = 0, Max = 200, Default = 50},
+    Min = 0,
+    Max = 200,
+    Default = 50,
     Callback = function(value)
         setJumpPower(value)
     end
@@ -1223,10 +1231,11 @@ WorldSection:Toggle({
         toggleESP(state)
     end
 })
-WorldSection:ColorPicker({
+--【修复：ColorPicker → Colorpicker，参数Default，不是Value】[[(GitHub)]](https://github.com/Footagesus/WindUI/blob/main/main.client.lua?f_link_type=f_linkinlinenote&flow_extra=eyJpbmxpbmVfZGlzcGxheV9wb3NpdGlvbiI6MCwiZG9jX3Bvc2l0aW9uIjowLCJkb2NfaWQiOiJkM2VjNmU4NWE4OTA4YzgzLTY0MzBkZjE0MjNkYTc0YjIifQ%3D%3D "[(GitHub)]")
+WorldSection:Colorpicker({
     Title = "ESP颜色",
     Desc = "选择ESP高亮颜色",
-    Value = Config.highlightColor,
+    Default = Config.highlightColor,
     Callback = function(color)
         Config.highlightColor = color
         for _, tree in pairs(WS.LogModels:GetChildren()) do
@@ -1314,16 +1323,16 @@ DupeSection:Input({
         dupeItemName = value
     end
 })
--- ==========【已修复Slider语法】 ==========
 DupeSection:Slider({
     Title = "复制数量",
     Desc = "要复制的物品数量",
-    Value = {Min = 1, Max = 100, Default = 10},
+    Min = 1,
+    Max = 100,
+    Default = 10,
     Callback = function(value)
         dupeCount = value
     end
 })
-
 DupeSection:Button({
     Title = "开始复制",
     Desc = "开始复制指定物品",
@@ -1405,16 +1414,16 @@ ShopSection:Dropdown({
         dupeItemName = value
     end
 })
--- ==========【已修复Slider语法】 ==========
 ShopSection:Slider({
     Title = "购买数量",
     Desc = "要购买的数量",
-    Value = {Min = 1, Max = 50, Default = 1},
+    Min = 1,
+    Max = 50,
+    Default = 1,
     Callback = function(value)
         dupeCount = value
     end
 })
-
 ShopSection:Button({
     Title = "购买物品",
     Desc = "从商店购买选中的物品",
