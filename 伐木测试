@@ -19,16 +19,24 @@ local Window = WindUI:CreateWindow({
     Transparent = false,
     Acrylic = false,
 })
+
 -- ============================================================
--- 通知函数
+-- ✅【修复】旧版WindUI没有Window:Notify！重写Notify弹窗，不调用Window方法
 -- ============================================================
 local function Notify(Title, Text, Duration)
-    Window:Notify{
-        Title = Title,
-        Content = Text,
-        Duration = Duration or 3,
-    }
+    -- 打印到控制台保底
+    print(string.format("[%s] %s", Title, Text))
+    Duration = Duration or 3
+    -- 旧版WindUI使用全局Notify
+    if WindUI.Notify then
+        WindUI.Notify({
+            Title = Title,
+            Content = Text,
+            Duration = Duration
+        })
+    end
 end
+
 -- ============================================================
 -- 基础变量
 -- ============================================================
@@ -44,7 +52,7 @@ local RunService = game:GetService("RunService")
 local VirtualUser = game:GetService("VirtualUser")
 
 -- ============================================================
--- 【重要】配置表 提前定义！修复角色重生事件nil报错
+-- 配置表 提前定义！
 -- ============================================================
 local Config = {
     -- 砍树配置
@@ -78,7 +86,7 @@ local Config = {
     espEnabled = false,
     highlightColor = Color3.fromRGB(255, 0, 0),
 }
--- 连接存储，防止多次Connect内存泄漏
+-- 连接存储
 local Conns = {
     antiRagdollConn = nil,
     afkConn = nil,
@@ -90,7 +98,7 @@ local Conns = {
     espConn = nil,
 }
 
--- 角色重生监听，修复重生后功能失效
+-- 角色重生监听
 local charConn
 local function setupCharacterEvents()
     if charConn then charConn:Disconnect() end
@@ -432,12 +440,15 @@ end
 -- 玩家功能
 -- ============================================================
 local function setSpeed(speed)
+    -- ✅防御nil，修复 arithmetic(sub) on nil
+    if not speed then return end
     Config.speed = speed
     if LP.Character and LP.Character:FindFirstChild("Humanoid") then
         LP.Character.Humanoid.WalkSpeed = speed
     end
 end
 local function setJumpPower(power)
+    if not power then return end
     Config.jumpPower = power
     if LP.Character and LP.Character:FindFirstChild("Humanoid") then
         LP.Character.Humanoid.JumpPower = power
@@ -538,9 +549,8 @@ local function toggleInfiniteJump(state)
     end
 end
 -- ============================================================
--- 保护功能【修复多次开关堆积连接】
+-- 保护功能
 -- ============================================================
--- 防布娃娃
 local function toggleAntiRagdoll(state)
     Config.antiRagdoll = state
     if state then
@@ -561,7 +571,6 @@ local function toggleAntiRagdoll(state)
         end
     end
 end
--- 防AFK
 local function toggleAntiAFK(state)
     Config.antiAFK = state
     if state then
@@ -578,7 +587,6 @@ local function toggleAntiAFK(state)
         end
     end
 end
--- 防虚空
 local function toggleAntiVoid(state)
     Config.antiVoid = state
     if state then
@@ -600,7 +608,6 @@ local function toggleAntiVoid(state)
         end
     end
 end
--- 防抛飞
 local function toggleAntiFling(state)
     Config.antiFling = state
     if state then
@@ -622,7 +629,6 @@ local function toggleAntiFling(state)
         end
     end
 end
--- 斧头恢复
 local function toggleAxeRecovery(state)
     Config.axeRecovery = state
     if state then
@@ -665,7 +671,6 @@ end
 -- ============================================================
 -- 世界功能
 -- ============================================================
--- 树相机
 local function toggleTreeCam(state)
     Config.treeCam = state
     if state then
@@ -692,7 +697,6 @@ local function toggleTreeCam(state)
         end
     end
 end
--- ESP功能
 local highlightFolder = nil
 local function toggleESP(state)
     Config.espEnabled = state
@@ -738,7 +742,7 @@ local function toggleESP(state)
     end
 end
 -- ============================================================
--- 物品复制功能 (Duplication)
+-- 物品复制功能
 -- ============================================================
 local duplicationEnabled = false
 local dupeLoop = nil
@@ -822,7 +826,6 @@ end
 -- ============================================================
 -- 创建UI标签页
 -- ============================================================
--- ============ 主页 ============
 local HomeTab = Window:Tab({
     Title = "主页",
     Icon = "house",
@@ -834,7 +837,7 @@ HomeTab:Paragraph({
     Title = "欢迎",
     Content = "Dynxe LT2 伐木大亨辅助\n版本: v0.0.576【修复版】\n\n选择左侧标签开始使用\n\n功能列表:\n- 自动砍树\n- 自动卖木头\n- 自动赚钱\n- 物品复制\n- 飞行/加速\n- 保护功能\n- 世界修改"
 })
--- ============ 砍树 ============
+
 local TreeTab = Window:Tab({
     Title = "砍树",
     Icon = "tree-pine",
@@ -895,7 +898,7 @@ ControlSection:Button({
         Notify("停止", "已停止所有砍树操作", 2)
     end
 })
--- ============ 赚钱 ============
+
 local MoneyTab = Window:Tab({
     Title = "赚钱",
     Icon = "coins",
@@ -917,7 +920,7 @@ MoneySection:Toggle({
         end
     end
 })
--- ============ 卖木头 ============
+
 local SellTab = Window:Tab({
     Title = "卖木头",
     Icon = "warehouse",
@@ -1007,7 +1010,7 @@ SellSection:Button({
         Notify("完成", "已传送所有木头", 2)
     end
 })
--- ============ 工具 ============
+
 local ToolTab = Window:Tab({
     Title = "工具",
     Icon = "wrench",
@@ -1046,7 +1049,7 @@ ToolSection:Button({
 local PlayerSection = ToolTab:Section({
     Title = "玩家修改"
 })
--- 【修复Slider参数 WindUI语法 Min Max Default】
+
 PlayerSection:Slider({
     Title = "移动速度",
     Desc = "修改玩家移动速度",
@@ -1118,7 +1121,7 @@ PlayerSection:Button({
         end
     end
 })
--- ============ 保护 ============
+
 local ProtectionTab = Window:Tab({
     Title = "保护",
     Icon = "shield",
@@ -1170,7 +1173,7 @@ ProtectionSection:Toggle({
         toggleAxeRecovery(state)
     end
 })
--- ============ 世界 ============
+
 local WorldTab = Window:Tab({
     Title = "世界",
     Icon = "globe",
@@ -1231,7 +1234,6 @@ WorldSection:Toggle({
         toggleESP(state)
     end
 })
---【修复：ColorPicker → Colorpicker，参数Default，不是Value】[[(GitHub)]](https://github.com/Footagesus/WindUI/blob/main/main.client.lua?f_link_type=f_linkinlinenote&flow_extra=eyJpbmxpbmVfZGlzcGxheV9wb3NpdGlvbiI6MCwiZG9jX3Bvc2l0aW9uIjowLCJkb2NfaWQiOiJkM2VjNmU4NWE4OTA4YzgzLTY0MzBkZjE0MjNkYTc0YjIifQ%3D%3D "[(GitHub)]")
 WorldSection:Colorpicker({
     Title = "ESP颜色",
     Desc = "选择ESP高亮颜色",
@@ -1247,7 +1249,7 @@ WorldSection:Colorpicker({
         end
     end
 })
--- ============ 传送 ============
+
 local TeleportTab = Window:Tab({
     Title = "传送",
     Icon = "map-pin",
@@ -1305,7 +1307,7 @@ TeleportSection:Button({
         Notify("清除", "已清除所有传送点", 2)
     end
 })
--- ============ 复制 ============
+
 local DupeTab = Window:Tab({
     Title = "复制",
     Icon = "copy",
@@ -1351,7 +1353,7 @@ DupeSection:Button({
         stopDuplication()
     end
 })
--- ============ 车辆 ============
+
 local VehicleTab = Window:Tab({
     Title = "车辆",
     Icon = "car",
@@ -1391,7 +1393,7 @@ VehicleSection:Button({
         Notify("刷新", "车辆列表已刷新", 2)
     end
 })
--- ============ 商店 ============
+
 local ShopTab = Window:Tab({
     Title = "商店",
     Icon = "store",
@@ -1431,7 +1433,7 @@ ShopSection:Button({
         buyItem(dupeItemName, dupeCount)
     end
 })
--- ============ 建造 ============
+
 local BuildTab = Window:Tab({
     Title = "建造",
     Icon = "hammer",
@@ -1455,7 +1457,7 @@ BuildSection:Toggle({
         Notify("无视碰撞", state and "已开启" or "已关闭", 2)
     end
 })
--- ============ 设置 ============
+
 local SettingsTab = Window:Tab({
     Title = "设置",
     Icon = "settings",
@@ -1486,8 +1488,6 @@ SettingsSection:Button({
         Notify("关闭", "菜单已关闭，全部后台任务已清理", 2)
     end
 })
--- ============================================================
--- 加载完成通知
--- ============================================================
+
 Notify("Dynxe LT2【修复版】", "全部功能加载完成！\n版本: v0.0.576‑fix", 5)
 print("✅ Dynxe LT2【修复版】全部功能已加载完成！")
