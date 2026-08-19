@@ -21,19 +21,24 @@ local Window = WindUI:CreateWindow({
 })
 
 -- ============================================================
--- ✅【修复】旧版WindUI没有Window:Notify！重写Notify弹窗，不调用Window方法
+-- ✅【修复】安全Notify - 兼容旧版WindUI，防御nil
 -- ============================================================
 local function Notify(Title, Text, Duration)
+    Duration = Duration or 3
     -- 打印到控制台保底
     print(string.format("[%s] %s", Title, Text))
-    Duration = Duration or 3
-    -- 旧版WindUI使用全局Notify
-    if WindUI.Notify then
-        WindUI.Notify({
-            Title = Title,
-            Content = Text,
-            Duration = Duration
-        })
+    -- 旧版WindUI可能没有Notify，用pcall保护
+    local success, err = pcall(function()
+        if WindUI and WindUI.Notify then
+            WindUI.Notify({
+                Title = Title,
+                Content = Text,
+                Duration = Duration
+            })
+        end
+    end)
+    if not success then
+        warn("Notify失败: " .. tostring(err))
     end
 end
 
@@ -439,16 +444,17 @@ end
 -- ============================================================
 -- 玩家功能
 -- ============================================================
+-- ✅【修复】setSpeed 防御 nil，添加默认值
 local function setSpeed(speed)
-    -- ✅防御nil，修复 arithmetic(sub) on nil
-    if not speed then return end
+    speed = speed or 16
     Config.speed = speed
     if LP.Character and LP.Character:FindFirstChild("Humanoid") then
         LP.Character.Humanoid.WalkSpeed = speed
     end
 end
+-- ✅【修复】setJumpPower 防御 nil，添加默认值
 local function setJumpPower(power)
-    if not power then return end
+    power = power or 50
     Config.jumpPower = power
     if LP.Character and LP.Character:FindFirstChild("Humanoid") then
         LP.Character.Humanoid.JumpPower = power
