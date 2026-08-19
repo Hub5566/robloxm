@@ -42,7 +42,6 @@ local TweenService = game:GetService("TweenService")
 local ContextActionService = game:GetService("ContextActionService")
 local RunService = game:GetService("RunService")
 local VirtualUser = game:GetService("VirtualUser")
-
 -- 角色重生监听，修复重生后功能失效
 local charConn
 local function setupCharacterEvents()
@@ -54,7 +53,6 @@ local function setupCharacterEvents()
     end)
 end
 setupCharacterEvents()
-
 -- ============================================================
 -- 树类型映射表
 -- ============================================================
@@ -118,7 +116,6 @@ local Config = {
     espEnabled = false,
     highlightColor = Color3.fromRGB(255, 0, 0),
 }
-
 -- 连接存储，防止多次Connect内存泄漏
 local Conns = {
     antiRagdollConn = nil,
@@ -130,7 +127,6 @@ local Conns = {
     treeCamConn = nil,
     espConn = nil,
 }
-
 -- ============================================================
 -- 工具函数
 -- ============================================================
@@ -1046,12 +1042,11 @@ ToolSection:Button({
 local PlayerSection = ToolTab:Section({
     Title = "玩家修改"
 })
+-- ==========【已修复Slider语法】 ==========
 PlayerSection:Slider({
     Title = "移动速度",
     Desc = "修改玩家移动速度",
-    Min = 0,
-    Max = 200,
-    Value = 16,
+    Value = {Min = 0, Max = 200, Default = 16},
     Callback = function(value)
         setSpeed(value)
     end
@@ -1059,13 +1054,12 @@ PlayerSection:Slider({
 PlayerSection:Slider({
     Title = "跳跃高度",
     Desc = "修改玩家跳跃高度",
-    Min = 0,
-    Max = 200,
-    Value = 50,
+    Value = {Min = 0, Max = 200, Default = 50},
     Callback = function(value)
         setJumpPower(value)
     end
 })
+
 PlayerSection:Toggle({
     Title = "飞行模式",
     Desc = "开启/关闭飞行 (WASD移动，空格上升，Shift下降)",
@@ -1320,16 +1314,16 @@ DupeSection:Input({
         dupeItemName = value
     end
 })
+-- ==========【已修复Slider语法】 ==========
 DupeSection:Slider({
     Title = "复制数量",
     Desc = "要复制的物品数量",
-    Min = 1,
-    Max = 100,
-    Value = 10,
+    Value = {Min = 1, Max = 100, Default = 10},
     Callback = function(value)
         dupeCount = value
     end
 })
+
 DupeSection:Button({
     Title = "开始复制",
     Desc = "开始复制指定物品",
@@ -1411,16 +1405,16 @@ ShopSection:Dropdown({
         dupeItemName = value
     end
 })
+-- ==========【已修复Slider语法】 ==========
 ShopSection:Slider({
     Title = "购买数量",
     Desc = "要购买的数量",
-    Min = 1,
-    Max = 50,
-    Value = 1,
+    Value = {Min = 1, Max = 50, Default = 1},
     Callback = function(value)
         dupeCount = value
     end
 })
+
 ShopSection:Button({
     Title = "购买物品",
     Desc = "从商店购买选中的物品",
