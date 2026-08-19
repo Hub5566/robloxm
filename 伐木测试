@@ -1,3 +1,6 @@
+-- ============================================================
+-- ✅ 第一步：加载 WindUI 并创建窗口
+-- ============================================================
 local WindUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Hub5566/robloxm/main/ui%20%201"))()
 local Window = WindUI:CreateWindow({
     Title = "Dynxe LT2",
@@ -21,24 +24,26 @@ local Window = WindUI:CreateWindow({
 })
 
 -- ============================================================
--- ✅【修复】安全Notify - 兼容旧版WindUI，防御nil
+-- ✅【关键修复】Notify 安全封装 - 使用 WindUI:Notify
 -- ============================================================
 local function Notify(Title, Text, Duration)
     Duration = Duration or 3
-    -- 打印到控制台保底
+    -- 打印到控制台
     print(string.format("[%s] %s", Title, Text))
-    -- 旧版WindUI可能没有Notify，用pcall保护
+    
+    -- 使用 pcall 保护，调用 WindUI:Notify（注意冒号）
     local success, err = pcall(function()
         if WindUI and WindUI.Notify then
-            WindUI.Notify({
+            WindUI:Notify({
                 Title = Title,
                 Content = Text,
                 Duration = Duration
             })
         end
     end)
+    
     if not success then
-        warn("Notify失败: " .. tostring(err))
+        warn("Notify 失败: " .. tostring(err))
     end
 end
 
@@ -51,16 +56,13 @@ local RS = game:GetService("ReplicatedStorage")
 local WS = game:GetService("Workspace")
 local CoreGui = game:GetService("CoreGui")
 local UserInputService = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
-local ContextActionService = game:GetService("ContextActionService")
 local RunService = game:GetService("RunService")
 local VirtualUser = game:GetService("VirtualUser")
 
 -- ============================================================
--- 配置表 提前定义！
+-- 配置表
 -- ============================================================
 local Config = {
-    -- 砍树配置
     cuttreeselect = "Generic",
     autofarm = false,
     autofarm1 = false,
@@ -71,27 +73,21 @@ local Config = {
     moneyLoop = nil,
     autoCollect = false,
     collectLoop = nil,
-
-    -- 玩家配置
     speed = 16,
     jumpPower = 50,
     flyEnabled = false,
     noclipEnabled = false,
     infiniteJump = false,
-
-    -- 保护配置
     antiRagdoll = false,
     antiAFK = false,
     antiVoid = false,
     antiFling = false,
     axeRecovery = false,
-
-    -- 世界配置
     treeCam = false,
     espEnabled = false,
     highlightColor = Color3.fromRGB(255, 0, 0),
 }
--- 连接存储
+
 local Conns = {
     antiRagdollConn = nil,
     afkConn = nil,
@@ -164,12 +160,14 @@ local function getTools()
     end
     return tools
 end
+
 local function getToolStats(toolName)
     if typeof(toolName) ~= "string" then
         toolName = toolName.ToolName.Value
     end
     return require(RS.AxeClasses['AxeClass_' .. toolName]).new()
 end
+
 local function getBestAxe(treeClass)
     local tools = getTools()
     if #tools == 0 then
@@ -201,6 +199,7 @@ local function getBestAxe(treeClass)
 
     return sorted[1].tool
 end
+
 local function cutPart(event, section, height, tool, treeClass)
     local axeStats = getToolStats(tool)
     RS.Interaction.RemoteProxy:FireServer(event, {
@@ -213,6 +212,7 @@ local function cutPart(event, section, height, tool, treeClass)
         cuttingClass = "Axe"
     })
 end
+
 local function getBiggestTree(treeClass)
     local biggest = nil
     local maxSize = 0
@@ -234,6 +234,7 @@ local function getBiggestTree(treeClass)
     end
     return biggest
 end
+
 local function treeListener(treeClass, callback)
     local connection
     connection = WS.LogModels.ChildAdded:Connect(function(child)
@@ -245,6 +246,7 @@ local function treeListener(treeClass, callback)
     end)
     return connection
 end
+
 local function tp(pos)
     if not LP.Character then return end
     local hrp = LP.Character:FindFirstChild("HumanoidRootPart")
@@ -255,6 +257,7 @@ local function tp(pos)
         hrp.Position = pos
     end
 end
+
 local function getNearestTeleport()
     local nearest = nil
     local minDist = math.huge
@@ -273,6 +276,7 @@ local function getNearestTeleport()
     end
     return nearest
 end
+
 -- ============================================================
 -- 核心砍树功能
 -- ============================================================
@@ -313,6 +317,7 @@ local function bringTree(treeClass)
         tp(Config.treecutset)
         if listener then listener:Disconnect() end
     end)
+    
     local tree = getBiggestTree(treeClass)
     if not tree then
         Notify("错误", "没有找到树", 3)
@@ -341,6 +346,7 @@ local function bringTree(treeClass)
     end)
     return true
 end
+
 -- ============================================================
 -- 卖木头功能
 -- ============================================================
@@ -358,6 +364,7 @@ local function sellWood()
         end
     end
 end
+
 local function collectWood()
     for _, v in pairs(WS.LogModels:GetChildren()) do
         if v:FindFirstChild("Owner") and v.Owner.Value == LP then
@@ -377,6 +384,7 @@ local function collectWood()
         end
     end
 end
+
 -- ============================================================
 -- 循环控制
 -- ============================================================
@@ -389,6 +397,7 @@ local function startFarm()
         end
     end)
 end
+
 local function stopFarm()
     Config.autofarm = false
     if Config.farmLoop then
@@ -396,6 +405,7 @@ local function stopFarm()
         Config.farmLoop = nil
     end
 end
+
 local function startSell()
     if Config.sellLoop then return end
     Config.sellLoop = task.spawn(function()
@@ -405,6 +415,7 @@ local function startSell()
         end
     end)
 end
+
 local function stopSell()
     Config.autosell = false
     if Config.sellLoop then
@@ -412,6 +423,7 @@ local function stopSell()
         Config.sellLoop = nil
     end
 end
+
 local function startCollect()
     if Config.collectLoop then return end
     Config.collectLoop = task.spawn(function()
@@ -421,6 +433,7 @@ local function startCollect()
         end
     end)
 end
+
 local function stopCollect()
     Config.autoCollect = false
     if Config.collectLoop then
@@ -428,6 +441,7 @@ local function stopCollect()
         Config.collectLoop = nil
     end
 end
+
 local function startMoney()
     if Config.moneyLoop then return end
     Config.autofarm = true
@@ -436,15 +450,16 @@ local function startMoney()
     startFarm()
     startSell()
 end
+
 local function stopMoney()
     Config.autofarm1 = false
     stopFarm()
     stopSell()
 end
+
 -- ============================================================
--- 玩家功能
+-- ✅【修复】玩家功能 - 防御 nil
 -- ============================================================
--- ✅【修复】setSpeed 防御 nil，添加默认值
 local function setSpeed(speed)
     speed = speed or 16
     Config.speed = speed
@@ -452,7 +467,7 @@ local function setSpeed(speed)
         LP.Character.Humanoid.WalkSpeed = speed
     end
 end
--- ✅【修复】setJumpPower 防御 nil，添加默认值
+
 local function setJumpPower(power)
     power = power or 50
     Config.jumpPower = power
@@ -460,8 +475,11 @@ local function setJumpPower(power)
         LP.Character.Humanoid.JumpPower = power
     end
 end
+
 -- 飞行功能
 local flyVel = nil
+local flySpeed = 50
+
 local function toggleFly(state)
     Config.flyEnabled = state
     local char = LP.Character
@@ -489,8 +507,7 @@ local function toggleFly(state)
         end
     end
 end
--- 飞行控制
-local flySpeed = 50
+
 UserInputService.InputBegan:Connect(function(input, processed)
     if not processed and Config.flyEnabled and LP.Character then
         local hrp = LP.Character:FindFirstChild("HumanoidRootPart")
@@ -507,6 +524,7 @@ UserInputService.InputBegan:Connect(function(input, processed)
         flyVel.Velocity = moveVec
     end
 end)
+
 -- Noclip
 local function toggleNoclip(state)
     Config.noclipEnabled = state
@@ -536,6 +554,7 @@ local function toggleNoclip(state)
         end
     end
 end
+
 -- 无限跳跃
 local function toggleInfiniteJump(state)
     Config.infiniteJump = state
@@ -554,6 +573,7 @@ local function toggleInfiniteJump(state)
         end
     end
 end
+
 -- ============================================================
 -- 保护功能
 -- ============================================================
@@ -577,6 +597,7 @@ local function toggleAntiRagdoll(state)
         end
     end
 end
+
 local function toggleAntiAFK(state)
     Config.antiAFK = state
     if state then
@@ -593,6 +614,7 @@ local function toggleAntiAFK(state)
         end
     end
 end
+
 local function toggleAntiVoid(state)
     Config.antiVoid = state
     if state then
@@ -614,6 +636,7 @@ local function toggleAntiVoid(state)
         end
     end
 end
+
 local function toggleAntiFling(state)
     Config.antiFling = state
     if state then
@@ -635,6 +658,7 @@ local function toggleAntiFling(state)
         end
     end
 end
+
 local function toggleAxeRecovery(state)
     Config.axeRecovery = state
     if state then
@@ -674,6 +698,7 @@ local function toggleAxeRecovery(state)
         end)
     end
 end
+
 -- ============================================================
 -- 世界功能
 -- ============================================================
@@ -703,6 +728,7 @@ local function toggleTreeCam(state)
         end
     end
 end
+
 local highlightFolder = nil
 local function toggleESP(state)
     Config.espEnabled = state
@@ -747,11 +773,13 @@ local function toggleESP(state)
         Notify("ESP", "已关闭", 2)
     end
 end
+
 -- ============================================================
 -- 物品复制功能
 -- ============================================================
 local duplicationEnabled = false
 local dupeLoop = nil
+
 local function startDuplication(itemName, count)
     if duplicationEnabled then return end
     duplicationEnabled = true
@@ -783,6 +811,7 @@ local function startDuplication(itemName, count)
         Notify("复制", "完成复制 " .. attempts .. " 个物品", 3)
     end)
 end
+
 local function stopDuplication()
     duplicationEnabled = false
     if dupeLoop then
@@ -791,6 +820,7 @@ local function stopDuplication()
     end
     Notify("复制", "已停止复制", 2)
 end
+
 -- ============================================================
 -- 车辆功能
 -- ============================================================
@@ -811,6 +841,7 @@ local function spawnVehicle(modelName)
         Notify("错误", "找不到车辆: " .. modelName, 3)
     end
 end
+
 -- ============================================================
 -- 商店功能
 -- ============================================================
@@ -829,28 +860,23 @@ local function buyItem(itemName, quantity)
         buyCooldown = false
     end)
 end
+
 -- ============================================================
--- 创建UI标签页
+-- ✅ 创建UI标签页（所有功能完整保留）
 -- ============================================================
 local HomeTab = Window:Tab({
     Title = "主页",
     Icon = "house",
 })
-HomeTab:Section({
-    Title = "Dynxe LT2"
-})
+HomeTab:Section({ Title = "Dynxe LT2" })
 HomeTab:Paragraph({
     Title = "欢迎",
     Content = "Dynxe LT2 伐木大亨辅助\n版本: v0.0.576【修复版】\n\n选择左侧标签开始使用\n\n功能列表:\n- 自动砍树\n- 自动卖木头\n- 自动赚钱\n- 物品复制\n- 飞行/加速\n- 保护功能\n- 世界修改"
 })
 
-local TreeTab = Window:Tab({
-    Title = "砍树",
-    Icon = "tree-pine",
-})
-local TreeSection = TreeTab:Section({
-    Title = "选择树类型"
-})
+-- 砍树标签
+local TreeTab = Window:Tab({ Title = "砍树", Icon = "tree-pine" })
+local TreeSection = TreeTab:Section({ Title = "选择树类型" })
 TreeSection:Dropdown({
     Title = "选择树",
     Values = TreeList,
@@ -860,9 +886,8 @@ TreeSection:Dropdown({
         Notify("选择", "已选择: " .. value, 2)
     end
 })
-local ControlSection = TreeTab:Section({
-    Title = "砍树控制"
-})
+
+local ControlSection = TreeTab:Section({ Title = "砍树控制" })
 ControlSection:Toggle({
     Title = "自动砍树",
     Desc = "自动砍伐选中的树",
@@ -905,13 +930,9 @@ ControlSection:Button({
     end
 })
 
-local MoneyTab = Window:Tab({
-    Title = "赚钱",
-    Icon = "coins",
-})
-local MoneySection = MoneyTab:Section({
-    Title = "自动赚钱"
-})
+-- 赚钱标签
+local MoneyTab = Window:Tab({ Title = "赚钱", Icon = "coins" })
+local MoneySection = MoneyTab:Section({ Title = "自动赚钱" })
 MoneySection:Toggle({
     Title = "自动赚钱",
     Desc = "砍树并自动卖木头",
@@ -927,13 +948,9 @@ MoneySection:Toggle({
     end
 })
 
-local SellTab = Window:Tab({
-    Title = "卖木头",
-    Icon = "warehouse",
-})
-local SellSection = SellTab:Section({
-    Title = "木头管理"
-})
+-- 卖木头标签
+local SellTab = Window:Tab({ Title = "卖木头", Icon = "warehouse" })
+local SellSection = SellTab:Section({ Title = "木头管理" })
 SellSection:Button({
     Title = "卖所有木头",
     Desc = "卖掉你所有的木头",
@@ -1017,13 +1034,9 @@ SellSection:Button({
     end
 })
 
-local ToolTab = Window:Tab({
-    Title = "工具",
-    Icon = "wrench",
-})
-local ToolSection = ToolTab:Section({
-    Title = "斧头管理"
-})
+-- 工具标签
+local ToolTab = Window:Tab({ Title = "工具", Icon = "wrench" })
+local ToolSection = ToolTab:Section({ Title = "斧头管理" })
 ToolSection:Button({
     Title = "获取最佳斧头",
     Desc = "显示当前最佳斧头",
@@ -1052,10 +1065,8 @@ ToolSection:Button({
         Notify("所有斧头", msg, 5)
     end
 })
-local PlayerSection = ToolTab:Section({
-    Title = "玩家修改"
-})
 
+local PlayerSection = ToolTab:Section({ Title = "玩家修改" })
 PlayerSection:Slider({
     Title = "移动速度",
     Desc = "修改玩家移动速度",
@@ -1076,7 +1087,6 @@ PlayerSection:Slider({
         setJumpPower(value)
     end
 })
-
 PlayerSection:Toggle({
     Title = "飞行模式",
     Desc = "开启/关闭飞行 (WASD移动，空格上升，Shift下降)",
@@ -1128,13 +1138,9 @@ PlayerSection:Button({
     end
 })
 
-local ProtectionTab = Window:Tab({
-    Title = "保护",
-    Icon = "shield",
-})
-local ProtectionSection = ProtectionTab:Section({
-    Title = "保护功能"
-})
+-- 保护标签
+local ProtectionTab = Window:Tab({ Title = "保护", Icon = "shield" })
+local ProtectionSection = ProtectionTab:Section({ Title = "保护功能" })
 ProtectionSection:Toggle({
     Title = "防布娃娃",
     Desc = "防止角色倒地/布娃娃状态",
@@ -1180,13 +1186,9 @@ ProtectionSection:Toggle({
     end
 })
 
-local WorldTab = Window:Tab({
-    Title = "世界",
-    Icon = "globe",
-})
-local WorldSection = WorldTab:Section({
-    Title = "世界修改"
-})
+-- 世界标签
+local WorldTab = Window:Tab({ Title = "世界", Icon = "globe" })
+local WorldSection = WorldTab:Section({ Title = "世界修改" })
 WorldSection:Button({
     Title = "传送到树",
     Desc = "传送到选中的树的位置",
@@ -1256,13 +1258,9 @@ WorldSection:Colorpicker({
     end
 })
 
-local TeleportTab = Window:Tab({
-    Title = "传送",
-    Icon = "map-pin",
-})
-local TeleportSection = TeleportTab:Section({
-    Title = "传送点管理"
-})
+-- 传送标签
+local TeleportTab = Window:Tab({ Title = "传送", Icon = "map-pin" })
+local TeleportSection = TeleportTab:Section({ Title = "传送点管理" })
 local TeleportPoints = {}
 local pointIndex = 0
 TeleportSection:Button({
@@ -1314,13 +1312,9 @@ TeleportSection:Button({
     end
 })
 
-local DupeTab = Window:Tab({
-    Title = "复制",
-    Icon = "copy",
-})
-local DupeSection = DupeTab:Section({
-    Title = "物品复制"
-})
+-- 复制标签
+local DupeTab = Window:Tab({ Title = "复制", Icon = "copy" })
+local DupeSection = DupeTab:Section({ Title = "物品复制" })
 local dupeItemName = ""
 local dupeCount = 10
 DupeSection:Input({
@@ -1360,13 +1354,9 @@ DupeSection:Button({
     end
 })
 
-local VehicleTab = Window:Tab({
-    Title = "车辆",
-    Icon = "car",
-})
-local VehicleSection = VehicleTab:Section({
-    Title = "车辆管理"
-})
+-- 车辆标签
+local VehicleTab = Window:Tab({ Title = "车辆", Icon = "car" })
+local VehicleSection = VehicleTab:Section({ Title = "车辆管理" })
 local function getVehicleList()
     local vehicles = {}
     for _, v in pairs(RS:GetChildren()) do
@@ -1381,7 +1371,7 @@ VehicleSection:Dropdown({
     Values = (function()
         local list = getVehicleList()
         if #list == 0 then
-            return {"默认车辆"}
+            return { "默认车辆" }
         end
         return list
     end)(),
@@ -1400,13 +1390,9 @@ VehicleSection:Button({
     end
 })
 
-local ShopTab = Window:Tab({
-    Title = "商店",
-    Icon = "store",
-})
-local ShopSection = ShopTab:Section({
-    Title = "商店功能"
-})
+-- 商店标签
+local ShopTab = Window:Tab({ Title = "商店", Icon = "store" })
+local ShopSection = ShopTab:Section({ Title = "商店功能" })
 local shopItems = {
     "BasicAxe",
     "RukiryAxe",
@@ -1440,13 +1426,9 @@ ShopSection:Button({
     end
 })
 
-local BuildTab = Window:Tab({
-    Title = "建造",
-    Icon = "hammer",
-})
-local BuildSection = BuildTab:Section({
-    Title = "建造辅助"
-})
+-- 建造标签
+local BuildTab = Window:Tab({ Title = "建造", Icon = "hammer" })
+local BuildSection = BuildTab:Section({ Title = "建造辅助" })
 BuildSection:Toggle({
     Title = "快速放置",
     Desc = "加快建造放置速度",
@@ -1464,13 +1446,9 @@ BuildSection:Toggle({
     end
 })
 
-local SettingsTab = Window:Tab({
-    Title = "设置",
-    Icon = "settings",
-})
-local SettingsSection = SettingsTab:Section({
-    Title = "菜单设置"
-})
+-- 设置标签
+local SettingsTab = Window:Tab({ Title = "设置", Icon = "settings" })
+local SettingsSection = SettingsTab:Section({ Title = "菜单设置" })
 SettingsSection:Button({
     Title = "关闭菜单",
     Desc = "关闭并销毁菜单，清理全部后台线程与连接",
@@ -1495,5 +1473,8 @@ SettingsSection:Button({
     end
 })
 
+-- ============================================================
+-- ✅ 最终启动通知
+-- ============================================================
 Notify("Dynxe LT2【修复版】", "全部功能加载完成！\n版本: v0.0.576‑fix", 5)
 print("✅ Dynxe LT2【修复版】全部功能已加载完成！")
