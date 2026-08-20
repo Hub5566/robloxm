@@ -1,18 +1,18 @@
 -- ============================================================
--- ✅ 第一步：加载 WindUI 并创建窗口
+-- 加载 WindUI
 -- ============================================================
 local WindUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Hub5566/robloxm/main/ui%20%201"))()
 local Window = WindUI:CreateWindow({
-    Title = "Dynxe LT2",
-    Author = "moonlua.icu",
-    Folder = "DynxeLT2",
+    Title = "白脚本 - 伐木大亨2",
+    Author = "白脚本",
+    Folder = "BaiScript",
     OpenButton = {
         Title = "打开菜单",
         CornerRadius = UDim.new(0, 16),
         StrokeThickness = 3,
         Color = ColorSequence.new(
-            Color3.fromHex("4a78ff"),
-            Color3.fromHex("4a78ff")
+            Color3.fromHex("ff4444"),
+            Color3.fromHex("ff4444")
         ),
         OnlyMobile = false,
         Enabled = true,
@@ -24,7 +24,7 @@ local Window = WindUI:CreateWindow({
 })
 
 -- ============================================================
--- ✅ Notify 安全封装
+-- Notify 安全封装
 -- ============================================================
 local function Notify(Title, Text, Duration)
     Duration = Duration or 3
@@ -55,61 +55,611 @@ local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local VirtualUser = game:GetService("VirtualUser")
 local TweenService = game:GetService("TweenService")
+local Mouse = LP:GetMouse()
 
 -- ============================================================
--- 配置表
+-- 白脚本配置表
 -- ============================================================
-local Config = {
+local bai = {
+    axedupe = false,
+    soltnumber = "1",
+    waterwalk = false,
+    awaysday = false,
+    awaysdnight = false,
+    nofog = false,
+    axeflying = false,
+    playernamedied = "",
+    tptree = "",
+    moneyaoumt = 1,
+    moneytoplayername = "",
+    donationRecipient = tostring(LP),
+    autodropae = false,
+    farAxeEquip = nil,
     cuttreeselect = "Generic",
     autofarm = false,
+    PlankToBlueprint = nil,
+    plankModel = nil,
+    blueprintModel = nil,
+    saymege = "",
+    autosay = false,
+    saymount = 1,
+    sayfast = false,
     autofarm1 = false,
-    autosell = false,
+    bringamount = 1,
+    bringtree = false,
+    dxmz = "",
+    color = 0,
+    zlwjia = "",
+    mtwjia = nil,
+    zix = 1,
+    zlz = 3,
+    axeFling = nil,
+    itemtoopen = "",
+    openItem = nil,
+    car = nil,
+    load = false,
+    autobuyamount = 1,
+    autopick = false,
+    loaddupeaxewaittime = 3.1,
+    walkspeed = 16,
+    JumpPower = 50,
+    pickupaxeamount = 1,
+    whthmose = false,
+    itemset = nil,
+    LoneCaveAxeDetection = nil,
+    cuttree = false,
+    LoneCaveCharacterAddedDetection = nil,
+    LoneCaveDeathDetection = nil,
+    lovecavecutcframe = nil,
+    lovecavepast = nil,
+    zlmt = nil,
+    shuzhe = false,
+    modwood = false,
+    tchonmt = nil,
+    cskais = false,
+    dledetree = false,
+    delereeset = nil,
     treecutset = nil,
-    farmLoop = nil,
-    sellLoop = nil,
-    moneyLoop = nil,
-    autoCollect = false,
-    collectLoop = nil,
-    speed = 16,
-    jumpPower = 50,
-    flyEnabled = false,
-    noclipEnabled = false,
-    infiniteJump = false,
-    antiRagdoll = false,
-    antiAFK = false,
-    antiVoid = false,
-    antiFling = false,
-    axeRecovery = false,
-    treeCam = false,
-    espEnabled = false,
-    highlightColor = Color3.fromRGB(255, 0, 0),
+    autobuyset = nil,
+    wood = 7,
+    cswjia = nil,
+    boxOpenConnection = nil,
+    autobuystop = false,
+    dropdown = {},
+    autocsdx = nil,
+    kuangxiu = nil,
+    xzemuban = false,
+    daiwp = false,
+    stopcar = false,
+    isFlyEnabled = false,
+    flySpeed = 50,
 }
-
-local Conns = {
-    antiRagdollConn = nil,
-    afkConn = nil,
-    antiVoidConn = nil,
-    antiFlingConn = nil,
-    noclipConn = nil,
-    infJumpConn = nil,
-    treeCamConn = nil,
-    espConn = nil,
-}
-
--- 角色重生监听
-local charConn
-local function setupCharacterEvents()
-    if charConn then charConn:Disconnect() end
-    charConn = LP.CharacterAdded:Connect(function()
-        task.wait(0.2)
-        if Config.flyEnabled then toggleFly(true) end
-        if Config.noclipEnabled then toggleNoclip(true) end
-    end)
-end
-setupCharacterEvents()
 
 -- ============================================================
--- 树类型映射表
+-- 工具函数
+-- ============================================================
+local function getTools()
+    local tools = {}
+    if not LP.Character then return tools end
+    for _, v in pairs(LP.Backpack:GetChildren()) do
+        if v:IsA("Tool") and v:FindFirstChild("ToolName") then
+            table.insert(tools, v)
+        end
+    end
+    local char = LP.Character
+    if char then
+        local tool = char:FindFirstChildOfClass("Tool")
+        if tool and tool:FindFirstChild("ToolName") then
+            table.insert(tools, tool)
+        end
+    end
+    return tools
+end
+
+local function getTool()
+    return LP.Character:FindFirstChildOfClass("Tool") or LP.Backpack:FindFirstChildOfClass("Tool")
+end
+
+local function getToolStats(toolName)
+    if typeof(toolName) ~= "string" then
+        toolName = toolName.ToolName.Value
+    end
+    local success, result = pcall(function()
+        return require(RS.AxeClasses['AxeClass_' .. toolName]).new()
+    end)
+    if success then
+        return result
+    else
+        return { Damage = 10, SwingCooldown = 0.1 }
+    end
+end
+
+function getTieredAxe()
+    return {
+        ['Beesaxe'] = 13, ['AxeAmber'] = 12, ['ManyAxe'] = 15, ['BasicHatchet'] = 0,
+        ['RustyAxe'] = -1, ['Axe1'] = 2, ['Axe2'] = 3, ['AxeAlphaTesters'] = 9,
+        ['Rukiryaxe'] = 8, ['Axe3'] = 4, ['AxeBetaTesters'] = 10, ['FireAxe'] = 11,
+        ['SilverAxe'] = 5, ['EndTimesAxe'] = 16, ['AxeChicken'] = 6,
+        ['CandyCaneAxe'] = 1, ['AxeTwitter'] = 7, ['CandyCornAxe'] = 14
+    }
+end
+
+function getAxeList()
+    local aP = {}
+    for _, v in pairs(LP.Backpack:GetChildren()) do
+        table.insert(aP, v)
+    end
+    local char = LP.Character
+    if char and char:FindFirstChildOfClass("Tool") then
+        table.insert(aP, char:FindFirstChildOfClass("Tool"))
+    end
+    return aP
+end
+
+function getBestAxe()
+    local aU = -1
+    local aV = nil
+    local aT = getTieredAxe()
+    for _, v in pairs(getAxeList()) do
+        if v:FindFirstChild("ToolName") then
+            if aT[v.ToolName.Value] > aU then
+                aV = v
+                aU = aT[v.ToolName.Value]
+            end
+        end
+    end
+    return aV
+end
+
+function getWorstAxe()
+    local aR = 9999
+    local aS = nil
+    local aT = getTieredAxe()
+    for _, v in pairs(getAxeList()) do
+        if v:FindFirstChild("ToolName") then
+            if aT[v.ToolName.Value] < aR then
+                aS = v
+                aR = aT[v.ToolName.Value]
+            end
+        end
+    end
+    return aS
+end
+
+local function tp(pos)
+    if not LP.Character then return end
+    local hrp = LP.Character:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+    if typeof(pos) == "CFrame" then
+        hrp.CFrame = pos
+    elseif typeof(pos) == "Vector3" then
+        hrp.Position = pos
+    end
+end
+
+local function carTeleport(cframe)
+    if not LP.Character then return end
+    local char = LP.Character
+    if char.Humanoid.SeatPart ~= nil then
+        local car = char.Humanoid.SeatPart.Parent
+        task.spawn(function()
+            for i = 1, 5 do
+                task.wait()
+                pcall(function()
+                    car:SetPrimaryPartCFrame(cframe * CFrame.Angles(
+                        math.rad(char.HumanoidRootPart.Orientation.X),
+                        math.rad(char.HumanoidRootPart.Orientation.Y), 0
+                    ))
+                    RS.Interaction.ClientRequestOwnership:FireServer(car.Main)
+                    RS.Interaction.ClientIsDragging:FireServer(car.Main)
+                end)
+            end
+        end)
+    end
+end
+
+local function getPosition()
+    return LP.Character and LP.Character.HumanoidRootPart and LP.Character.HumanoidRootPart.CFrame or CFrame.new()
+end
+
+local function droptool(position)
+    local char = LP.Character
+    if char and char:FindFirstChildOfClass("Tool") then
+        local tool = char:FindFirstChildOfClass("Tool")
+        if tool:FindFirstChild("ToolName") then
+            RS.Interaction.ClientInteracted:FireServer(tool, "Drop tool", position or char.Head.CFrame)
+        end
+    end
+    for _, v in pairs(LP.Backpack:GetChildren()) do
+        if v:IsA("Tool") and v:FindFirstChild("ToolName") then
+            RS.Interaction.ClientInteracted:FireServer(v, "Drop tool", position or char.Head.CFrame)
+        end
+    end
+end
+
+local function getMouseTarget()
+    local b2 = UserInputService:GetMouseLocation()
+    return WS:FindPartOnRayWithIgnoreList(
+        Ray.new(WS.CurrentCamera.CFrame.p, WS.CurrentCamera:ViewportPointToRay(b2.X, b2.Y, 0).Direction * 1000),
+        LP.Character:GetDescendants()
+    )
+end
+
+local function getPlanks()
+    local plankList = {}
+    for _, plank in pairs(WS.PlayerModels:GetChildren()) do
+        if plank:FindFirstChild("WoodSection") and plank:FindFirstChild("Owner") and
+            plank.Owner.Value == LP and not table.find(plankList, plank) then
+            table.insert(plankList, plank)
+        end
+    end
+    return plankList
+end
+
+local function OwnerCheck(item)
+    if item:FindFirstChild("Owner") then
+        return tostring(item.Owner.Value)
+    end
+    return nil
+end
+
+local function WhitelistCheck(player)
+    return RS.Interaction.ClientIsWhitelisted:InvokeServer(player) == true
+end
+
+function gplr(String)
+    local Found = {}
+    local strl = String:lower()
+    if strl == "all" then
+        for _, v in pairs(Players:GetPlayers()) do
+            table.insert(Found, v)
+        end
+    elseif strl == "others" then
+        for _, v in pairs(Players:GetPlayers()) do
+            if v.Name ~= LP.Name then
+                table.insert(Found, v)
+            end
+        end
+    elseif strl == "me" then
+        for _, v in pairs(Players:GetPlayers()) do
+            if v.Name == LP.Name then
+                table.insert(Found, v)
+            end
+        end
+    else
+        for _, v in pairs(Players:GetPlayers()) do
+            if v.Name:lower():sub(1, #String) == String:lower() then
+                table.insert(Found, v)
+            end
+        end
+    end
+    return Found
+end
+
+local function shuaxinlb(zji)
+    bai.dropdown = {}
+    if zji == true then
+        for _, v in pairs(Players:GetChildren()) do
+            table.insert(bai.dropdown, v.Name)
+        end
+    else
+        for _, v in pairs(Players:GetChildren()) do
+            if v ~= LP then
+                table.insert(bai.dropdown, v.Name)
+            end
+        end
+    end
+end
+shuaxinlb(true)
+
+local function CanClientLoad()
+    if not RS.LoadSaveRequests.ClientMayLoad:InvokeServer(LP) then
+        Notify("白", "等待加载时间,请耐心的等待", 4)
+        repeat
+            RunService.Stepped:wait()
+        until RS.LoadSaveRequests.ClientMayLoad:InvokeServer(LP)
+    end
+    return true
+end
+
+function GetLoadedSlot()
+    return LP.CurrentSaveSlot.Value
+end
+
+function LoadSlot(slot)
+    local CheckLoad
+    task.spawn(function()
+        CheckLoad = RS.LoadSaveRequests.ClientMayLoad:InvokeServer(LP)
+        if not CheckLoad then
+            repeat task.wait() until CheckLoad
+        end
+        RS.LoadSaveRequests.RequestLoad:InvokeServer(slot, LP)
+        return slot
+    end)
+end
+
+function CheckIfSlotAvailable(Slot)
+    for a, b in pairs(RS.LoadSaveRequests.GetMetaData:InvokeServer(LP)) do
+        if a == Slot then
+            for c, d in pairs(b) do
+                if c == "NumSaves" and d ~= 0 then
+                    return true
+                end
+            end
+        end
+    end
+    return false
+end
+
+function CheckSlotNumber()
+    local slot = tonumber(bai.soltnumber)
+    if slot and slot >= 1 and slot <= 6 then
+        return slot
+    end
+    return false
+end
+
+local cashierIds = {}
+task.spawn(function()
+    local connection = RS.NPCDialog.PromptChat.OnClientEvent:connect(function(data, id)
+        if cashierIds[data.Name] == nil then
+            cashierIds[data.Name] = data.ID
+        end
+    end)
+    RS.NPCDialog.SetChattingValue:InvokeServer(1)
+    task.wait(2)
+    connection:Disconnect()
+    RS.NPCDialog.SetChattingValue:InvokeServer(0)
+end)
+
+local function getSpecialID(Shop)
+    return cashierIds[Shop]
+end
+
+-- ============================================================
+-- 砍树核心函数
+-- ============================================================
+local function cutPart(event, section, height, tool, treeClass)
+    local axeStats = getToolStats(tool)
+    RS.Interaction.RemoteProxy:FireServer(event, {
+        tool = tool,
+        faceVector = Vector3.new(-1, 0, 0),
+        height = height or 0.3,
+        sectionId = section or 1,
+        hitPoints = axeStats.Damage or 10,
+        cooldown = axeStats.SwingCooldown or 0.1,
+        cuttingClass = "Axe"
+    })
+end
+
+local function getBiggestTree(treeClass)
+    local biggest = nil
+    local maxSize = 0
+    for _, region in pairs(WS:GetChildren()) do
+        if region.Name == "TreeRegion" then
+            for _, tree in pairs(region:GetChildren()) do
+                if tree:FindFirstChild("TreeClass") and tree.TreeClass.Value == treeClass then
+                    local ws = tree:FindFirstChild("WoodSection")
+                    if ws then
+                        local size = ws.Size.X * ws.Size.Y * ws.Size.Z
+                        if size > maxSize then
+                            maxSize = size
+                            biggest = tree
+                        end
+                    end
+                end
+            end
+        end
+    end
+    return biggest
+end
+
+local function treeListener(treeClass, callback)
+    local connection
+    connection = WS.LogModels.ChildAdded:Connect(function(child)
+        local owner = child:FindFirstChild("Owner")
+        if owner and owner.Value == LP and child.TreeClass.Value == treeClass then
+            connection:Disconnect()
+            callback(child)
+        end
+    end)
+    return connection
+end
+
+local function bringTree(treeClass)
+    local tool = getBestAxe()
+    if not tool then
+        Notify("白", "你需要斧头", 4)
+        return false
+    end
+
+    if treeClass == "LoneCave" and tool.ToolName.Value ~= "EndTimesAxe" then
+        Notify("白", "幻影木需要末日斧头", 4)
+        return false
+    end
+
+    local treeCut = false
+    local listener
+
+    listener = treeListener(treeClass, function(tree)
+        tree:WaitForChild('Owner', 60)
+        tree.PrimaryPart = tree:FindFirstChild("WoodSection")
+        treeCut = true
+
+        task.spawn(function()
+            for i = 1, 60 do
+                RS.Interaction.ClientIsDragging:FireServer(tree)
+                task.wait(0.05)
+            end
+        end)
+        task.wait(0.1)
+
+        if tree.PrimaryPart then
+            task.spawn(function()
+                for i = 1, 60 do
+                    tree:PivotTo(bai.treecutset or CFrame.new(0, 0, 0))
+                    task.wait(0.05)
+                end
+            end)
+        end
+
+        task.wait(0.5)
+        if treeClass == "LoneCave" then
+            if LP.Character and LP.Character:FindFirstChild("Head") then
+                LP.Character.Head:Destroy()
+            end
+            LP.CharacterAdded:Wait()
+            task.wait(2)
+        end
+
+        tp(bai.treecutset)
+        if listener then listener:Disconnect() end
+    end)
+
+    local tree = getBiggestTree(treeClass)
+    if not tree then
+        Notify("白", "没有找到树", 3)
+        if listener then listener:Disconnect() end
+        return false
+    end
+
+    local ws = tree:FindFirstChild("WoodSection")
+    if not ws then
+        Notify("白", "树没有WoodSection", 3)
+        if listener then listener:Disconnect() end
+        return false
+    end
+
+    task.spawn(function()
+        local attempts = 0
+        while not treeCut and attempts < 100 do
+            if not LP.Character then break end
+            tp(ws.CFrame + Vector3.new(3, 3, 0))
+            cutPart(tree.CutEvent, 1, 0.3, tool, treeClass)
+            task.wait(0.1)
+            attempts = attempts + 1
+        end
+        if not treeCut then
+            Notify("白", "砍树超时", 3)
+            if listener then listener:Disconnect() end
+        end
+    end)
+    return true
+end
+
+local function autofarm(treeClass)
+    local oldpos = getPosition()
+    local tool = getBestAxe()
+    if not tool then
+        Notify("白", "你需要斧头", 4)
+        return
+    end
+
+    if treeClass == "LoneCave" and tool.ToolName.Value ~= "EndTimesAxe" then
+        Notify("白", "幻影木需要末日斧头", 4)
+        return
+    end
+
+    local tree = getBiggestTree(treeClass)
+    if not tree then
+        Notify("白", "没有找到树", 3)
+        return
+    end
+
+    local treeCut = false
+    local treeListenerCon
+
+    treeListenerCon = treeListener(treeClass, function(tree)
+        tree.PrimaryPart = tree:FindFirstChild("WoodSection")
+        treeCut = true
+
+        for i = 1, 70 do
+            RS.Interaction.ClientIsDragging:FireServer(tree.WoodSection)
+            tree:MoveTo(oldpos.Position)
+            task.wait()
+        end
+    end)
+
+    task.wait(0.15)
+
+    task.spawn(function()
+        repeat
+            tp(tree.trunk.CFrame * CFrame.new(4, 3, 4))
+            task.wait()
+        until treeCut
+    end)
+
+    task.wait()
+
+    repeat
+        cutPart(tree.tree.CutEvent, 1, 0.3, tool, treeClass)
+        task.wait(0.1)
+    until treeCut
+
+    if not bai.autofarm1 then
+        Notify("白", "完成", 3)
+    end
+    tp(oldpos)
+end
+
+-- ============================================================
+-- 卖木头功能
+-- ============================================================
+local function sellWood()
+    local oldpos = getPosition()
+    for _, v in pairs(WS.LogModels:GetChildren()) do
+        if v:FindFirstChild("Owner") and v.Owner.Value == LP then
+            local ws = v:FindFirstChild("WoodSection")
+            if ws then
+                tp(ws.CFrame)
+                task.spawn(function()
+                    for i = 1, 50 do
+                        RS.Interaction.ClientIsDragging:FireServer(v)
+                        v:PivotTo(CFrame.new(314.54, -0.5, 86.823))
+                        ws.CFrame = CFrame.new(314.54, -0.5, 86.823)
+                        RS.Interaction.ClientIsDragging:FireServer(v)
+                        task.wait(0.05)
+                    end
+                end)
+                task.wait(2)
+            end
+        end
+    end
+    tp(oldpos)
+end
+
+local function sellPlanks()
+    for _, plank in pairs(WS.PlayerModels:GetChildren()) do
+        if plank.Name == "Plank" and plank:FindFirstChild("Owner") then
+            if plank.Owner.Value == LP then
+                local ws = plank:FindFirstChild("WoodSection")
+                if ws then
+                    task.spawn(function()
+                        for i = 1, 10 do
+                            task.wait()
+                            ws.CFrame = CFrame.new(315, -0.296, 85.791) * CFrame.Angles(math.rad(90), 0, 0)
+                        end
+                    end)
+                    task.spawn(function()
+                        for i = 1, 20 do
+                            task.wait()
+                            RS.Interaction.ClientIsDragging:FireServer(plank)
+                        end
+                    end)
+                end
+            end
+        end
+    end
+end
+
+-- ============================================================
+-- 传送点
+-- ============================================================
+local TeleportPoints = {}
+local pointIndex = 0
+
+-- ============================================================
+-- 树类型
 -- ============================================================
 local TreeData = {
     { name = "普通树", id = "Generic" },
@@ -130,6 +680,7 @@ local TreeData = {
     { name = "南瓜木", id = "SpookyNeon" },
     { name = "幽灵木", id = "Spooky" },
 }
+
 local TreeList = {}
 local TreeMap = {}
 for _, data in ipairs(TreeData) do
@@ -138,253 +689,720 @@ for _, data in ipairs(TreeData) do
 end
 
 -- ============================================================
--- ✅ 工具函数 - 全部添加 pcall 保护
+-- 商店物品列表
 -- ============================================================
-local function getTools()
-    local tools = {}
-    if not LP.Character then return tools end
-    for _, v in pairs(LP.Backpack:GetChildren()) do
-        if v:IsA("Tool") and v:FindFirstChild("ToolName") then
-            table.insert(tools, v)
-        end
-    end
-    local char = LP.Character
-    if char then
-        local tool = char:FindFirstChildOfClass("Tool")
-        if tool and tool:FindFirstChild("ToolName") then
-            table.insert(tools, tool)
-        end
-    end
-    return tools
+local ShopItems = {
+    '按钮', '控制杆', '电线', '4/4x1木楔', '3/4x1木楔', '2/4x1木楔', '1/4X1木楔',
+    '3/3x1木楔', '2/3x1木楔', '1/3x1木楔', '2/2x1木楔', '1/2x1木楔', '1/1x1木楔',
+    '篱笆', '压力板', '1/3木楔', '锯木机01', '锯木机02L', '波纹墙角立柱', '传送带',
+    '普通凳子', '倾斜传送带', '3/4木楔', '2/3木楔', '光滑的墙', '光滑墙角', '普通锯木厂',
+    '4/4木楔', '光滑墙立柱', '篱笆角', '矮篱笆角', '矮波纹墙', '长桌', '矮篱笆',
+    '光滑墙角立柱', '破旧锯木厂', '普通门', '矮光滑墙', '工作灯', '弯传送带',
+    '切换传送带', '宽敞门', '3/3木楔', '400元小汽车', '波纹墙立柱', '锯木机02',
+    '漏斗式传送带', '小型地板', '小型瓷砖', '矮波纹墙角', '波纹墙', '大型地板',
+    '微型瓷砖', '微型地板', '1/1木楔', '左转直式传送带', '银斧头', '切割机',
+    '基础斧头', '右转传送带', '普通斧头', '转向传送带支架', '传送带支架',
+    '波纹墙角立柱', '楼梯', '陡峭楼梯', '钢斧', '标志杆', '梯子', '大型瓷砖',
+    '瓷砖', '硬化斧', '半截门', '木头清扫机', '光滑墙立柱', '沙子袋', '小型拖车',
+    '531式拖车', '小汽车XL', '大卡车', '长沙发', '洗碗机', '薄柜子', '冰箱', '火炉',
+    '马桶', '双人沙发', '床', '落地灯', '台灯', '微型玻璃板', '小型玻璃板', '玻璃板',
+    '大型玻璃板', '玻璃门', '琥珀色冰柱灯串', '红色冰柱灯串', '绿色冰柱灯串',
+    '蓝色冰柱灯串', '烟花发射器', '惊悚冰柱灯串', '单人沙发', '双人床', '灯泡',
+    '工作台面', '薄工作台面', '带水槽的工作台面', '照明灯', '墙灯', '橱柜角',
+    '宽橱柜角', '橱柜', '炸药', '毛毛虫软糖', '困扰装饰画', '户外水彩素描',
+    '阴郁的黄昏海景', '北极灯串', '菠萝画', '孤独的长颈鹿', '信号维持器', '与门',
+    '异与门', '木材检测器', 'OR门', '拉杆', '信号延时器', '信号变换器', '激光',
+    '激光探测器', '舱门', '橙色发光线', '绿色发光线', '黄色发光线', '白色发光线',
+    '紫色发光线', '红色发光线', '青色发光线', '蓝色发光线', '定时开关'
+}
+
+local ShopItemMap = {
+    ['按钮'] = 'Button0', ['控制杆'] = 'Lever0', ['电线'] = 'Wire',
+    ['4/4x1木楔'] = 'Wedge1_Thin', ['3/4x1木楔'] = 'Wedge2_Thin',
+    ['2/4x1木楔'] = 'Wedge3_Thin', ['1/4X1木楔'] = 'Wedge4_Thin',
+    ['3/3x1木楔'] = 'Wedge5_Thin', ['2/3x1木楔'] = 'Wedge6_Thin',
+    ['1/3x1木楔'] = 'Wedge7_Thin', ['2/2x1木楔'] = 'Wedge8_Thin',
+    ['1/2x1木楔'] = 'Wedge9_Thin', ['1/1x1木楔'] = 'Wedge10_Thin',
+    ['篱笆'] = 'Wall3TallThin', ['压力板'] = 'PressurePlate', ['1/3木楔'] = 'Wedge7',
+    ['锯木机01'] = 'Sawmill3', ['锯木机02L'] = 'Sawmill4L', ['波纹墙角立柱'] = 'Wall1ShortCorner',
+    ['传送带'] = 'StraightConveyor', ['普通凳子'] = 'Chair1', ['倾斜传送带'] = 'TiltConveyor',
+    ['3/4木楔'] = 'Wedge2', ['2/3木楔'] = 'Wedge6', ['光滑的墙'] = 'Wall2',
+    ['光滑墙角'] = 'Wall2TallCorner', ['普通锯木厂'] = 'Sawmill2', ['4/4木楔'] = 'Wedge1',
+    ['光滑墙立柱'] = 'Wall2Short', ['篱笆角'] = 'Wall3TallCorner', ['矮篱笆角'] = 'Wall3Corner',
+    ['矮波纹墙'] = 'Wall1Thin', ['长桌'] = 'Table2', ['矮篱笆'] = 'Wall3',
+    ['光滑墙角立柱'] = 'Wall2ShortCorner', ['破旧锯木厂'] = 'Sawmill', ['普通门'] = 'Door1',
+    ['矮光滑墙'] = 'Wall2', ['工作灯'] = 'WorkLight', ['弯传送带'] = 'TightTurnConveyor',
+    ['切换传送带'] = 'ConveyorSwitch', ['宽敞门'] = 'Door3', ['3/3木楔'] = 'Wedge5',
+    ['400元小汽车'] = 'UtilityTruck', ['波纹墙立柱'] = 'Wall1ShortThin', ['锯木机02'] = 'Sawmill4L',
+    ['漏斗式传送带'] = 'ConveyorFunnel', ['小型地板'] = 'Floor1Small', ['小型瓷砖'] = 'Floor2Small',
+    ['矮波纹墙角'] = 'Wall1Corner', ['波纹墙'] = 'Wall1Tall', ['大型地板'] = 'Floor1Large',
+    ['微型瓷砖'] = 'Floor2Tiny', ['微型地板'] = 'Floor1Tiny', ['1/1木楔'] = 'Wedge10',
+    ['左转直式传送带'] = 'StraightSwitchConveyorLeft', ['银斧头'] = 'SilverAxe',
+    ['切割机'] = 'ChopSaw', ['基础斧头'] = 'BasicHatchet',
+    ['右转传送带'] = 'StraightSwitchConveyorRight', ['普通斧头'] = 'Axe1',
+    ['转向传送带支架'] = 'TightTurnConveyorSupports', ['传送带支架'] = 'ConveyorSupports',
+    ['楼梯'] = 'Stair2', ['陡峭楼梯'] = 'Stair1', ['钢斧'] = 'Axe2', ['标志杆'] = 'Post',
+    ['梯子'] = 'Ladder1', ['大型瓷砖'] = 'Floor2Large', ['瓷砖'] = 'Floor2',
+    ['硬化斧'] = 'Axe3', ['半截门'] = 'Door2', ['木头清扫机'] = 'LogSweeper',
+    ['光滑墙立柱'] = 'Wall2ShortThin', ['沙子袋'] = 'BagOfSand', ['小型拖车'] = 'SmallTrailer',
+    ['531式拖车'] = 'Trailer2', ['小汽车XL'] = 'UtilityTruck2', ['大卡车'] = 'Pickup1',
+    ['长沙发'] = 'Seat_Couch', ['洗碗机'] = 'Dishwasher', ['薄柜子'] = 'Cabinet1Thin',
+    ['冰箱'] = 'Refridgerator', ['马桶'] = 'Toilet', ['双人沙发'] = 'Seat_Loveseat',
+    ['床'] = 'Bed1', ['落地灯'] = 'FloorLamp1', ['台灯'] = 'Lamp1',
+    ['微型玻璃板'] = 'GlassPane1', ['小型玻璃板'] = 'GlassPane2', ['玻璃板'] = 'GlassPane3',
+    ['大型玻璃板'] = 'GlassPane4', ['玻璃门'] = 'GlassDoor1',
+    ['琥珀色冰柱灯串'] = 'IcicleWireAmber', ['红色冰柱灯串'] = 'IcicleWireRed',
+    ['绿色冰柱灯串'] = 'IcicleWireGreen', ['蓝色冰柱灯串'] = 'IcicleWireBlue',
+    ['烟花发射器'] = 'FireworkLauncher', ['惊悚冰柱灯串'] = 'IcicleWireHalloween',
+    ['单人沙发'] = 'Seat_Armchair', ['双人床'] = 'Bed2', ['灯泡'] = 'LightBulb',
+    ['工作台面'] = 'CounterTop1', ['薄工作台面'] = 'CounterTop1Thin',
+    ['带水槽的工作台面'] = 'CounterTop1Sink', ['照明灯'] = 'WallLight2',
+    ['墙灯'] = 'WallLight1', ['橱柜角'] = 'Cabinet1CornerTight',
+    ['宽橱柜角'] = 'Cabinet1CornerWide', ['橱柜'] = 'Cabinet1',
+    ['毛毛虫软糖'] = 'CanOfWorms', ['炸药'] = 'Dynamite', ['困扰装饰画'] = 'Painting2',
+    ['户外水彩素描'] = 'Painting3', ['阴郁的黄昏海景'] = 'Painting6',
+    ['北极灯串'] = 'Painting7', ['菠萝画'] = 'Painting8', ['孤独的长颈鹿'] = 'Painting9',
+    ['信号维持器'] = 'SignalSustain', ['与门'] = 'GateAND', ['异与门'] = 'GateXOR',
+    ['木材检测器'] = 'WoodChecker', ['OR门'] = 'GateOR', ['拉杆'] = 'Lever0',
+    ['信号延时器'] = 'SignalDelay', ['信号变换器'] = 'GateNOT', ['激光'] = 'Laser',
+    ['激光探测器'] = 'LaserReceiver', ['舱门'] = 'Hatch', ['橙色发光线'] = 'NeonWireOrange',
+    ['绿色发光线'] = 'NeonWireGreen', ['黄色发光线'] = 'NeonWireYellow',
+    ['白色发光线'] = 'NeonWireWhite', ['紫色发光线'] = 'NeonWireViolet',
+    ['红色发光线'] = 'NeonWireRed', ['青色发光线'] = 'NeonWireCyan',
+    ['蓝色发光线'] = 'NeonWireBlue', ['定时开关'] = 'ClockSwitch'
+}
+
+GetShopID = {
+    ["WoodRus"] = { ["Character"] = WS.Stores.WoodRUs.Thom, ["Name"] = "Thom", ["ID"] = 7 },
+    ["FurnitureStore"] = { ["Character"] = WS.Stores.FurnitureStore.Corey, ["Name"] = "Corey", ["ID"] = 8 },
+    ["CarStore"] = { ["Character"] = WS.Stores.CarStore.Jenny, ["Name"] = "Jenny", ["ID"] = 9 },
+    ["ShackShop"] = { ["Character"] = WS.Stores.ShackShop.Bob, ["Name"] = "Bob", ["ID"] = 10 },
+    ["FineArt"] = { ["Character"] = WS.Stores.FineArt.Timothy, ["Name"] = "Timothy", ["ID"] = 11 },
+    ["LogicStore"] = { ["Character"] = WS.Stores.LogicStore.Lincoln, ["Name"] = "Lincoln", ["ID"] = 12 }
+}
+
+BuyItem = function(m)
+    return RS.NPCDialog.PlayerChatted:InvokeServer(m, "ConfirmPurchase")
 end
 
-local function getToolStats(toolName)
-    local success, result = pcall(function()
-        if typeof(toolName) ~= "string" then
-            toolName = toolName.ToolName.Value
-        end
-        return require(RS.AxeClasses['AxeClass_' .. toolName]).new()
-    end)
-    if success then
-        return result
-    else
-        return { Damage = 10, SwingCooldown = 0.1 }
-    end
-end
-
-local function getBestAxe(treeClass)
-    local tools = getTools()
-    if #tools == 0 then
-        Notify("错误", "你需要斧头", 3)
-        return nil
-    end
-
-    if treeClass == "LoneCave" then
-        for _, v in pairs(tools) do
-            if v.ToolName.Value == "EndTimesAxe" then
-                return v
+function finditem(o)
+    for _, h in pairs(WS.Stores:GetChildren()) do
+        if h.Name == "ShopItems" and h:FindFirstChild("Box") then
+            for _, j in pairs(h:GetChildren()) do
+                if j.BoxItemName.Value == o then
+                    for _, w in pairs(h:GetChildren()) do
+                        if w.BoxItemName.Value == "Bed1" or w.BoxItemName.Value == "Seat_Couch" then
+                            ID = GetShopID.FurnitureStore
+                            Cashier = WS.Stores.FurnitureStore.Corey.HumanoidRootPart.CFrame
+                            Counter = WS.Stores.FurnitureStore.Counter.CFrame + Vector3.new(0, .4, 0)
+                        elseif w.BoxItemName.Value == "Sawmill" or w.BoxItemName.Value == "Sawmill2" then
+                            ID = GetShopID.WoodRus
+                            Cashier = WS.Stores.WoodRUs.Thom.HumanoidRootPart.CFrame
+                            Counter = WS.Stores.WoodRUs.Counter.CFrame + Vector3.new(0, .4, 0)
+                        elseif w.BoxItemName.Value == "Trailer2" or w.BoxItemName.Value == "UtilityTruck2" then
+                            ID = GetShopID.CarStore
+                            Cashier = WS.Stores.CarStore.Jenny.HumanoidRootPart.CFrame
+                            Counter = WS.Stores.CarStore.Counter.CFrame + Vector3.new(0, .4, 0)
+                        elseif w.BoxItemName.Value == "CanOfWorms" or w.BoxItemName.Value == "Dynamite" then
+                            ID = GetShopID.ShackShop
+                            Cashier = WS.Stores.ShackShop.Bob.HumanoidRootPart.CFrame
+                            Counter = WS.Stores.ShackShop.Counter.CFrame + Vector3.new(0, .4, 0)
+                        elseif w.BoxItemName.Value == "Painting1" or w.BoxItemName.Value == "Painting2" then
+                            ID = GetShopID.FineArt
+                            Cashier = WS.Stores.FineArt.Timothy.HumanoidRootPart.CFrame
+                            Counter = WS.Stores.FineArt.Counter.CFrame + Vector3.new(0, .4, 0)
+                        elseif w.BoxItemName.Value == "GateXOR" or w.BoxItemName.Value == "NeonWireOrange" then
+                            ID = GetShopID.LogicStore
+                            Cashier = WS.Stores.LogicStore.Lincoln.HumanoidRootPart.CFrame
+                            Counter = WS.Stores.LogicStore.Counter.CFrame + Vector3.new(0, .4, 0)
+                        end
+                    end
+                    return { j, Cashier, ID, Counter }
+                end
             end
         end
-        Notify("错误", "幻影木需要末日斧头", 3)
-        return nil
+    end
+end
+
+function autobuyv2(o)
+    local item = finditem(o)
+    if item == nil then
+        Notify("白", "没有找到商品或者没有刷新，请你等待", 4)
+        repeat
+            task.wait()
+            item = finditem(o)
+        until item ~= nil
     end
 
-    local sorted = {}
-    for _, v in pairs(tools) do
-        local stats = getToolStats(v)
-        table.insert(sorted, {
-            tool = v,
-            damage = stats.Damage or 10
-        })
+    local ltem = item[1]
+    tp(ltem.Main.CFrame)
+    task.wait()
+
+    RunService.Stepped:wait()
+    for e = 1, 15 do
+        RS.Interaction.ClientIsDragging:FireServer(ltem)
+        ltem:PivotTo(item[4])
+        RS.Interaction.ClientIsDragging:FireServer(ltem)
+        RunService.Stepped:wait()
     end
-    table.sort(sorted, function(a, b)
-        return a.damage > b.damage
+    tp(item[4] + Vector3.new(5, 0, 5))
+
+    repeat
+        BuyItem(item[3])
+        RunService.Stepped:wait()
+    until tostring(ltem.Parent) ~= "ShopItems"
+
+    return o
+end
+
+function autobuy(o, r)
+    bai.autocsdx = WS.PlayerModels.ChildAdded:Connect(function(v)
+        v:WaitForChild('Owner', 60)
+        if v.Owner.Value == LP then
+            for i = 1, 20 do
+                RS.Interaction.ClientIsDragging:FireServer(v)
+                v:PivotTo(bai.autobuyset)
+                RS.Interaction.ClientIsDragging:FireServer(v)
+                RunService.Stepped:wait()
+            end
+        end
     end)
-
-    return sorted[1] and sorted[1].tool or nil
+    for e = 1, r do
+        if not bai.autobuystop then
+            autobuyv2(o)
+            task.wait()
+        end
+    end
+    task.spawn(function()
+        task.wait(1)
+        if bai.autocsdx then
+            bai.autocsdx:Disconnect()
+            bai.autocsdx = nil
+        end
+    end)
+    return o, r
 end
 
-local function cutPart(event, section, height, tool, treeClass)
-    local axeStats = getToolStats(tool)
-    RS.Interaction.RemoteProxy:FireServer(event, {
-        tool = tool,
-        faceVector = Vector3.new(-1, 0, 0),
-        height = height or 0.3,
-        sectionId = section or 1,
-        hitPoints = axeStats.Damage or 10,
-        cooldown = axeStats.SwingCooldown or 0.1,
-        cuttingClass = "Axe"
-    })
+function lowerBridge(value)
+    if value == 'Higher' then
+        for _, v in pairs(WS.Bridge.VerticalLiftBridge.Lift:GetChildren()) do
+            v.CFrame = v.CFrame + Vector3.new(0, 26, 0)
+        end
+    elseif value == 'Lower' then
+        for _, v in pairs(WS.Bridge.VerticalLiftBridge.Lift:GetChildren()) do
+            v.CFrame = v.CFrame + Vector3.new(0, -26, 0)
+        end
+    end
 end
 
-local function getBiggestTree(treeClass)
-    local biggest = nil
-    local maxSize = 0
-    local success, result = pcall(function()
+-- ============================================================
+-- 创建UI标签页
+-- ============================================================
+task.wait(0.5)
+
+-- 主标签
+local HomeTab = Window:Tab({ Title = "主页", Icon = "house" })
+HomeTab:Section({ Title = "白脚本" })
+HomeTab:Paragraph({
+    Title = "欢迎使用白脚本",
+    Content = "白脚本 - 伐木大亨2 多功能辅助\n版本: v2.0\n\n选择左侧标签开始使用\n\n功能列表:\n- 自动砍树/卖木头\n- 斧头管理\n- 传送功能\n- 玩家修改\n- 环境修改\n- 自动购买\n- 魔鬼功能"
+})
+
+-- ============================================================
+-- 玩家功能标签
+-- ============================================================
+local PlayerTab = Window:Tab({ Title = "玩家", Icon = "user" })
+
+local PlayerSection1 = PlayerTab:Section({ Title = "玩家修改" })
+local PlayerSection2 = PlayerTab:Section({ Title = "传送" })
+local PlayerSection3 = PlayerTab:Section({ Title = "树传送" })
+
+PlayerSection1:Slider({
+    Title = "移动速度",
+    Desc = "修改玩家移动速度",
+    Min = 16,
+    Max = 600,
+    Default = 16,
+    Callback = function(value)
+        bai.walkspeed = value
+        task.spawn(function()
+            while task.wait() do
+                if LP.Character and LP.Character:FindFirstChild("Humanoid") then
+                    LP.Character.Humanoid.WalkSpeed = bai.walkspeed
+                end
+            end
+        end)
+    end
+})
+
+PlayerSection1:Slider({
+    Title = "跳跃高度",
+    Desc = "修改玩家跳跃高度",
+    Min = 50,
+    Max = 600,
+    Default = 50,
+    Callback = function(value)
+        bai.JumpPower = value
+        task.spawn(function()
+            while task.wait() do
+                if LP.Character and LP.Character:FindFirstChild("Humanoid") then
+                    LP.Character.Humanoid.JumpPower = bai.JumpPower
+                end
+            end
+        end)
+    end
+})
+
+PlayerSection1:Slider({
+    Title = "重力",
+    Desc = "修改游戏重力",
+    Min = -999,
+    Max = 999,
+    Default = 198,
+    Callback = function(value)
+        WS.Gravity = value
+    end
+})
+
+PlayerSection1:Slider({
+    Title = "相机焦距",
+    Desc = "修改相机最大焦距",
+    Min = 0,
+    Max = 9999,
+    Default = 100,
+    Callback = function(value)
+        LP.CameraMaxZoomDistance = value
+    end
+})
+
+PlayerSection1:Button({
+    Title = "飞行模式",
+    Desc = "开启飞行模式",
+    Callback = function()
+        loadstring(game:HttpGet("https://gist.githubusercontent.com/meozoneYT/bf037dff9f0a70017304ddd67fdcd370/raw/e14e74f425b060df5233cf30b878074eb3c5d2/arceus%20x%20fly%202%20obfuscator", true))()
+    end
+})
+
+PlayerSection1:Toggle({
+    Title = "穿墙模式",
+    Desc = "开启/关闭穿墙",
+    Value = false,
+    Callback = function(state)
+        if state then
+            bai.noclipConn = RunService.Stepped:Connect(function()
+                if LP.Character then
+                    for _, part in pairs(LP.Character:GetChildren()) do
+                        if part:IsA("BasePart") then
+                            part.CanCollide = false
+                        end
+                    end
+                end
+            end)
+        else
+            if bai.noclipConn then
+                bai.noclipConn:Disconnect()
+                bai.noclipConn = nil
+            end
+            if LP.Character then
+                for _, part in pairs(LP.Character:GetChildren()) do
+                    if part:IsA("BasePart") then
+                        part.CanCollide = true
+                    end
+                end
+            end
+        end
+    end
+})
+
+PlayerSection1:Button({
+    Title = "安全自杀",
+    Desc = "快速重生",
+    Callback = function()
+        if LP.Character and LP.Character:FindFirstChild("Head") then
+            LP.Character.Head:Destroy()
+        end
+    end
+})
+
+PlayerSection1:Button({
+    Title = "解锁最大焦距",
+    Desc = "解锁相机最大焦距",
+    Callback = function()
+        LP.CameraMaxZoomDistance = 9e9
+    end
+})
+
+local function TurnInvisible()
+    -- 简化版隐身
+    if LP.Character then
+        for _, part in pairs(LP.Character:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.Transparency = 0.5
+            end
+        end
+    end
+end
+
+local function TurnVisible()
+    if LP.Character then
+        for _, part in pairs(LP.Character:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.Transparency = 0
+            end
+        end
+    end
+end
+
+PlayerSection1:Toggle({
+    Title = "隐身模式",
+    Desc = "开启/关闭隐身",
+    Value = false,
+    Callback = function(state)
+        if state then
+            TurnInvisible()
+        else
+            TurnVisible()
+        end
+    end
+})
+
+-- 传送
+local TeleportLocations = {
+    '出生点', '木材反斗城', '土地商店', '桥', '码头', '椰子岛', '洞穴',
+    '鲨鱼斧合成', '火山', '沼泽', '家具店', '盒子车行', '连锁逻辑店',
+    '鲍勃的小店', '画廊', '雪山', '灵视神殿', '怪人', '小绿盒',
+    '滑雪小屋', '黄金木洞穴', '小鸟斧头', '灯塔', '回家'
+}
+
+local TeleportCFrames = {
+    ['出生点'] = CFrame.new(174, 10.5, 66),
+    ['木材反斗城'] = CFrame.new(270, 4, 60),
+    ['土地商店'] = CFrame.new(270, 3, -98),
+    ['桥'] = CFrame.new(112, 37, -892),
+    ['码头'] = CFrame.new(1136, 0, -206),
+    ['椰子岛'] = CFrame.new(2614, -4, -34),
+    ['洞穴'] = CFrame.new(3590, -177, 415),
+    ['鲨鱼斧合成'] = CFrame.new(330.259735, 45.7998505, 1943.30823),
+    ['火山'] = CFrame.new(-1588, 623, 1069),
+    ['沼泽'] = CFrame.new(-1216, 131, -822),
+    ['家具店'] = CFrame.new(486, 3, -1722),
+    ['盒子车行'] = CFrame.new(509, 3, -1458),
+    ['连锁逻辑店'] = CFrame.new(4615, 7, -794),
+    ['鲍勃的小店'] = CFrame.new(292, 8, -2544),
+    ['画廊'] = CFrame.new(5217, -166, 721),
+    ['雪山'] = CFrame.new(1487, 415, 3259),
+    ['灵视神殿'] = CFrame.new(-1608, 195, 928),
+    ['怪人'] = CFrame.new(1071, 16, 1141),
+    ['小绿盒'] = CFrame.new(-1667, 349, 1474),
+    ['滑雪小屋'] = CFrame.new(1244, 59, 2290),
+    ['黄金木洞穴'] = CFrame.new(-1080, -5, -942),
+    ['小鸟斧头'] = CFrame.new(4813.1, 33.5, -978.8),
+    ['灯塔'] = CFrame.new(1464.8, 356.3, 3257.2),
+}
+
+PlayerSection2:Dropdown({
+    Title = "传送",
+    Values = TeleportLocations,
+    Value = "出生点",
+    Callback = function(value)
+        if value == '回家' then
+            for _, v in pairs(WS.Properties:GetChildren()) do
+                if v.Owner.Value == LP then
+                    tp(v.OriginSquare.CFrame + Vector3.new(0, 10, 0))
+                    break
+                end
+            end
+        elseif TeleportCFrames[value] then
+            tp(TeleportCFrames[value])
+        end
+    end
+})
+
+PlayerSection3:Dropdown({
+    Title = "传送到树",
+    Values = TreeList,
+    Value = "普通树",
+    Callback = function(value)
+        local treeId = TreeMap[value] or "Generic"
         for _, region in pairs(WS:GetChildren()) do
             if region.Name == "TreeRegion" then
                 for _, tree in pairs(region:GetChildren()) do
-                    if tree:FindFirstChild("TreeClass") and tree.TreeClass.Value == treeClass then
+                    if tree:FindFirstChild("TreeClass") and tree.TreeClass.Value == treeId then
                         local ws = tree:FindFirstChild("WoodSection")
                         if ws then
-                            local size = ws.Size.X * ws.Size.Y * ws.Size.Z
-                            if size > maxSize then
-                                maxSize = size
-                                biggest = tree
-                            end
+                            tp(ws.CFrame + Vector3.new(0, 5, 0))
+                            return
                         end
                     end
                 end
             end
         end
-    end)
-    return biggest
-end
-
-local function treeListener(treeClass, callback)
-    local connection
-    connection = WS.LogModels.ChildAdded:Connect(function(child)
-        local owner = child:FindFirstChild("Owner")
-        if owner and owner.Value == LP and child.TreeClass.Value == treeClass then
-            connection:Disconnect()
-            callback(child)
-        end
-    end)
-    return connection
-end
-
-local function tp(pos)
-    if not LP.Character then return end
-    local hrp = LP.Character:FindFirstChild("HumanoidRootPart")
-    if not hrp then return end
-    local success, err = pcall(function()
-        if typeof(pos) == "CFrame" then
-            hrp.CFrame = pos
-        elseif typeof(pos) == "Vector3" then
-            hrp.Position = pos
-        end
-    end)
-end
-
-local function getNearestTeleport()
-    local nearest = nil
-    local minDist = math.huge
-    if not LP.Character then return nil end
-    local hrp = LP.Character:FindFirstChild("HumanoidRootPart")
-    if not hrp then return nil end
-
-    for _, v in pairs(WS:GetChildren()) do
-        if v:IsA("Model") and v:FindFirstChild("HumanoidRootPart") then
-            local dist = (hrp.Position - v.HumanoidRootPart.Position).Magnitude
-            if dist < minDist and dist > 5 then
-                minDist = dist
-                nearest = v
-            end
-        end
+        Notify("白", "没有找到该类型的树", 3)
     end
-    return nearest
-end
+})
 
 -- ============================================================
--- 核心砍树功能
+-- 主要功能标签
 -- ============================================================
-local function bringTree(treeClass)
-    local tool = getBestAxe(treeClass)
-    if not tool then return false end
-    local treeCut = false
-    local listener
+local MainTab = Window:Tab({ Title = "主要功能", Icon = "pickaxe" })
 
-    listener = treeListener(treeClass, function(tree)
-        local success = pcall(function()
-            tree:WaitForChild('Owner', 60)
-            tree.PrimaryPart = tree:FindFirstChild("WoodSection")
-        end)
-        treeCut = true
-        task.spawn(function()
-            for i = 1, 60 do
-                pcall(function()
-                    RS.Interaction.ClientIsDragging:FireServer(tree)
-                end)
-                task.wait(0.05)
-            end
-        end)
-        task.wait(0.1)
+local AxeSection = MainTab:Section({ Title = "斧头管理" })
+local BaseSection = MainTab:Section({ Title = "基地" })
+local WoodSection = MainTab:Section({ Title = "木头" })
+local BringTreeSection = MainTab:Section({ Title = "砍树" })
+local MoneySection = MainTab:Section({ Title = "赚钱" })
 
-        if tree.PrimaryPart then
+AxeSection:Toggle({
+    Title = "自动扔斧头",
+    Desc = "自动扔掉当前斧头",
+    Value = false,
+    Callback = function(state)
+        bai.autodropae = state
+        if state then
             task.spawn(function()
-                for i = 1, 60 do
-                    pcall(function()
-                        tree:PivotTo(Config.treecutset or CFrame.new(0, 0, 0))
-                    end)
-                    task.wait(0.05)
+                while bai.autodropae do
+                    local oldpos = getPosition()
+                    droptool(oldpos)
+                    task.wait(1)
                 end
             end)
         end
-        task.wait(0.5)
-        if treeClass == "LoneCave" then
-            if LP.Character and LP.Character:FindFirstChild("Head") then
-                LP.Character.Head:Destroy()
-            end
-            LP.CharacterAdded:Wait()
-            task.wait(2)
-        end
-        tp(Config.treecutset)
-        if listener then listener:Disconnect() end
-    end)
-    
-    local tree = getBiggestTree(treeClass)
-    if not tree then
-        Notify("错误", "没有找到树", 3)
-        if listener then listener:Disconnect() end
-        return false
     end
-    local ws = tree:FindFirstChild("WoodSection")
-    if not ws then
-        Notify("错误", "树没有WoodSection", 3)
-        if listener then listener:Disconnect() end
-        return false
-    end
-    task.spawn(function()
-        local attempts = 0
-        while not treeCut and attempts < 100 do
-            if not LP.Character then break end
-            pcall(function()
-                tp(ws.CFrame + Vector3.new(3, 3, 0))
-                cutPart(tree.CutEvent, 1, 0.3, tool, treeClass)
-            end)
-            task.wait(0.1)
-            attempts = attempts + 1
-        end
-        if not treeCut then
-            Notify("超时", "砍树超时", 3)
-            if listener then listener:Disconnect() end
-        end
-    end)
-    return true
-end
+})
 
--- ============================================================
--- 卖木头功能
--- ============================================================
-local function sellWood()
-    local success = pcall(function()
-        for _, plank in pairs(WS.PlayerModels:GetChildren()) do
-            if plank.Name == "Plank" and plank:FindFirstChild("Owner") then
-                if plank.Owner.Value == LP then
-                    local ws = plank:FindFirstChild("WoodSection")
-                    if ws then
-                        ws.CFrame = CFrame.new(315, -0.296, 85.791)
-                        task.wait(0.05)
-                        RS.Interaction.ClientIsDragging:FireServer(plank)
+AxeSection:Toggle({
+    Title = "自动捡斧头",
+    Desc = "自动捡起地上的斧头",
+    Value = false,
+    Callback = function(state)
+        bai.autopick = state
+        if state then
+            task.spawn(function()
+                while bai.autopick do
+                    task.wait(0.1)
+                    for _, v in pairs(WS.PlayerModels:GetChildren()) do
+                        if v:FindFirstChild("Owner") and v.Owner.Value == LP then
+                            if v:FindFirstChild("Type") and v.Type.Value == "Tool" then
+                                RS.Interaction.ClientInteracted:FireServer(v, 'Pick up tool')
+                            end
+                        end
                     end
                 end
+            end)
+        end
+    end
+})
+
+AxeSection:Button({
+    Title = "远程装备斧头",
+    Desc = "点击地上的斧头远程装备",
+    Callback = function()
+        Notify("白", "点击一把地上的斧头", 4)
+        local conn
+        conn = Mouse.Button1Down:Connect(function()
+            local target = Mouse.Target
+            if target and target.Parent and target.Parent:FindFirstChild("ToolName") then
+                if OwnerCheck(target.Parent) == tostring(LP) or WhitelistCheck(target.Parent.Owner.Value) then
+                    RS.Interaction.ClientInteracted:FireServer(target.Parent, 'Pick up tool')
+                    Notify("白", "已装备斧头", 4)
+                    conn:Disconnect()
+                end
+            end
+        end)
+    end
+})
+
+AxeSection:Button({
+    Title = "获取最佳斧头",
+    Desc = "显示当前最佳斧头",
+    Callback = function()
+        local tool = getBestAxe()
+        if tool then
+            Notify("白", "最佳斧头: " .. tool.Name, 3)
+        else
+            Notify("白", "没有找到斧头", 3)
+        end
+    end
+})
+
+AxeSection:Textbox({
+    Title = "加载复制斧头等待时间",
+    Desc = "死亡后加载时间(秒)",
+    Value = "3.1",
+    Callback = function(value)
+        bai.loaddupeaxewaittime = tonumber(value) or 3.1
+    end
+})
+
+AxeSection:Button({
+    Title = "加载复制斧头",
+    Desc = "通过死亡加载复制斧头",
+    Callback = function()
+        CanClientLoad()
+        task.wait(1)
+        if LP.Character and LP.Character:FindFirstChild("Head") then
+            LP.Character.Head:Destroy()
+        end
+        task.wait(bai.loaddupeaxewaittime)
+        LoadSlot(GetLoadedSlot())
+        task.wait(6)
+        if LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then
+            LP.Character.HumanoidRootPart.CFrame = getPosition()
+        end
+    end
+})
+
+AxeSection:Toggle({
+    Title = "斧头跟随鼠标",
+    Desc = "斧头飞向鼠标位置",
+    Value = false,
+    Callback = function(state)
+        bai.whthmose = state
+    end
+})
+
+-- 基地
+BaseSection:Button({
+    Title = "点击土地免费获得",
+    Desc = "点击空地免费获得土地",
+    Callback = function()
+        Notify("白", "点击一个空的土地", 4)
+        local conn
+        conn = Mouse.Button1Up:Connect(function()
+            local clicked = Mouse.Target
+            if clicked and clicked.Parent and clicked.Parent.Name == "Property" then
+                local v = clicked.Parent
+                if v:FindFirstChild("Owner") and v.Owner.Value == nil then
+                    RS.PropertyPurchasing.ClientPurchasedProperty:FireServer(v, v.OriginSquare.OriginCFrame.Value.p + Vector3.new(0, 3, 0))
+                    task.wait(0.5)
+                    Instance.new('RemoteEvent', RS.Interaction).Name = "Ban"
+                    if LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then
+                        LP.Character.HumanoidRootPart.CFrame = v.OriginSquare.CFrame + Vector3.new(0, 10, 0)
+                    end
+                    Notify("白", "土地已获取", 4)
+                    conn:Disconnect()
+                else
+                    Notify("白", "这个土地有主人了", 4)
+                end
+            end
+        end)
+    end
+})
+
+BaseSection:Button({
+    Title = "免费所有空地",
+    Desc = "获取所有空土地",
+    Callback = function()
+        for _, v in pairs(WS.Properties:GetChildren()) do
+            if v:FindFirstChild("Owner") and v:FindFirstChild("OriginSquare") and v.Owner.Value == nil then
+                RS.PropertyPurchasing.ClientPurchasedProperty:FireServer(v, v.OriginSquare.OriginCFrame.Value.p + Vector3.new(0, 3, 0))
+                task.wait(0.5)
+                Instance.new('RemoteEvent', RS.Interaction).Name = "Ban"
             end
         end
-    end)
-end
+        Notify("白", "已完成", 3)
+    end
+})
 
-local function collectWood()
-    local success = pcall(function()
+BaseSection:Button({
+    Title = "最大土地",
+    Desc = "最大化你的土地",
+    Callback = function()
+        local base, square
+        for _, v in pairs(WS.Properties:GetChildren()) do
+            if v:FindFirstChild("Owner") and v.Owner.Value == LP then
+                base = v
+                square = v.OriginSquare
+                break
+            end
+        end
+        if not base then
+            Notify("白", "没有找到你的土地", 3)
+            return
+        end
+
+        local spos = square.Position
+        local function makebase(pos)
+            RS.PropertyPurchasing.ClientExpandedProperty:FireServer(base, pos)
+        end
+
+        makebase(CFrame.new(spos.X + 40, spos.Y, spos.Z))
+        makebase(CFrame.new(spos.X - 40, spos.Y, spos.Z))
+        makebase(CFrame.new(spos.X, spos.Y, spos.Z + 40))
+        makebase(CFrame.new(spos.X, spos.Y, spos.Z - 40))
+        makebase(CFrame.new(spos.X + 40, spos.Y, spos.Z + 40))
+        makebase(CFrame.new(spos.X + 40, spos.Y, spos.Z - 40))
+        makebase(CFrame.new(spos.X - 40, spos.Y, spos.Z + 40))
+        makebase(CFrame.new(spos.X - 40, spos.Y, spos.Z - 40))
+        makebase(CFrame.new(spos.X + 80, spos.Y, spos.Z))
+        makebase(CFrame.new(spos.X - 80, spos.Y, spos.Z))
+        makebase(CFrame.new(spos.X, spos.Y, spos.Z + 80))
+        makebase(CFrame.new(spos.X, spos.Y, spos.Z - 80))
+        makebase(CFrame.new(spos.X + 80, spos.Y, spos.Z + 80))
+        makebase(CFrame.new(spos.X + 80, spos.Y, spos.Z - 80))
+        makebase(CFrame.new(spos.X - 80, spos.Y, spos.Z + 80))
+        makebase(CFrame.new(spos.X - 80, spos.Y, spos.Z - 80))
+
+        Notify("白", "土地已最大化", 3)
+    end
+})
+
+BaseSection:Textbox({
+    Title = "选择存档",
+    Desc = "输入存档编号(1-6)",
+    Value = "1",
+    Callback = function(value)
+        bai.soltnumber = value
+    end
+})
+
+BaseSection:Button({
+    Title = "加载存档",
+    Desc = "加载选中的存档",
+    Callback = function()
+        local slot = CheckSlotNumber()
+        if slot then
+            if CheckIfSlotAvailable(slot) then
+                local result = RS.LoadSaveRequests.RequestLoad:InvokeServer(slot)
+                if result then
+                    Notify("白", "已加载存档 " .. slot, 3)
+                else
+                    Notify("白", "加载失败，有冷却", 3)
+                end
+            else
+                Notify("白", "存档不可用", 3)
+            end
+        else
+            Notify("白", "请输入有效数字(1-6)", 3)
+        end
+    end
+})
+
+BaseSection:Button({
+    Title = "一键复制存档",
+    Desc = "复制当前存档",
+    Callback = function()
+        local slot = tonumber(bai.soltnumber)
+        if not slot then
+            Notify("白", "请输入有效存档编号", 3)
+            return
+        end
+        local conn = WS.PlayerModels.ChildAdded:Connect(function(v)
+            if v:WaitForChild("Owner") and v.Owner.Value == LP then
+                RunService.Stepped:wait()
+                game:Shutdown()
+            end
+        end)
+        RS.LoadSaveRequests.RequestLoad:InvokeServer(slot, LP)
+    end
+})
+
+-- 木头
+WoodSection:Button({
+    Title = "传送木头到基地",
+    Desc = "把所有木头传送到当前位置",
+    Callback = function()
+        local oldpos = getPosition()
         for _, v in pairs(WS.LogModels:GetChildren()) do
             if v:FindFirstChild("Owner") and v.Owner.Value == LP then
                 if not v.PrimaryPart then
@@ -398,1120 +1416,656 @@ local function collectWood()
                 end)
                 for i = 1, 50 do
                     task.wait(0.05)
-                    v:PivotTo(Config.treecutset or CFrame.new(0, 0, 0))
+                    v:PivotTo(oldpos)
                 end
             end
         end
-    end)
-end
-
--- ============================================================
--- 循环控制
--- ============================================================
-local function startFarm()
-    if Config.farmLoop then return end
-    Config.farmLoop = task.spawn(function()
-        while Config.autofarm do
-            bringTree(Config.cuttreeselect)
-            task.wait(0.5)
-        end
-    end)
-end
-
-local function stopFarm()
-    Config.autofarm = false
-    if Config.farmLoop then
-        task.cancel(Config.farmLoop)
-        Config.farmLoop = nil
-    end
-end
-
-local function startSell()
-    if Config.sellLoop then return end
-    Config.sellLoop = task.spawn(function()
-        while Config.autosell do
-            sellWood()
-            task.wait(2)
-        end
-    end)
-end
-
-local function stopSell()
-    Config.autosell = false
-    if Config.sellLoop then
-        task.cancel(Config.sellLoop)
-        Config.sellLoop = nil
-    end
-end
-
-local function startCollect()
-    if Config.collectLoop then return end
-    Config.collectLoop = task.spawn(function()
-        while Config.autoCollect do
-            collectWood()
-            task.wait(1)
-        end
-    end)
-end
-
-local function stopCollect()
-    Config.autoCollect = false
-    if Config.collectLoop then
-        task.cancel(Config.collectLoop)
-        Config.collectLoop = nil
-    end
-end
-
-local function startMoney()
-    if Config.moneyLoop then return end
-    Config.autofarm = true
-    Config.autosell = true
-    Config.autofarm1 = true
-    startFarm()
-    startSell()
-end
-
-local function stopMoney()
-    Config.autofarm1 = false
-    stopFarm()
-    stopSell()
-end
-
--- ============================================================
--- ✅【关键修复】玩家功能 - 完整的 nil 防御
--- ============================================================
-local function setSpeed(speed)
-    speed = tonumber(speed) or 16
-    Config.speed = speed
-    local success, err = pcall(function()
-        if LP.Character and LP.Character:FindFirstChild("Humanoid") then
-            LP.Character.Humanoid.WalkSpeed = speed
-        end
-    end)
-end
-
-local function setJumpPower(power)
-    power = tonumber(power) or 50
-    Config.jumpPower = power
-    local success, err = pcall(function()
-        if LP.Character and LP.Character:FindFirstChild("Humanoid") then
-            LP.Character.Humanoid.JumpPower = power
-        end
-    end)
-end
-
--- 飞行功能
-local flyVel = nil
-local flySpeed = 50
-
-local function toggleFly(state)
-    Config.flyEnabled = state
-    local char = LP.Character
-    if not char then return end
-    local hrp = char:FindFirstChild("HumanoidRootPart")
-    if not hrp then return end
-
-    if state then
-        if not flyVel then
-            flyVel = Instance.new("BodyVelocity")
-            flyVel.MaxForce = Vector3.new(1, 1, 1) * 100000
-            flyVel.Parent = hrp
-            flyVel.Velocity = Vector3.new(0, 0, 0)
-        end
-        if char:FindFirstChild("Humanoid") then
-            char.Humanoid.PlatformStand = true
-        end
-    else
-        if flyVel then
-            flyVel:Destroy()
-            flyVel = nil
-        end
-        if char:FindFirstChild("Humanoid") then
-            char.Humanoid.PlatformStand = false
-        end
-    end
-end
-
-UserInputService.InputBegan:Connect(function(input, processed)
-    if not processed and Config.flyEnabled and LP.Character then
-        local hrp = LP.Character:FindFirstChild("HumanoidRootPart")
-        if not hrp or not flyVel then return end
-
-        local moveVec = Vector3.new(0, 0, 0)
-        if input.KeyCode == Enum.KeyCode.W then moveVec = moveVec + hrp.CFrame.LookVector * flySpeed end
-        if input.KeyCode == Enum.KeyCode.S then moveVec = moveVec - hrp.CFrame.LookVector * flySpeed end
-        if input.KeyCode == Enum.KeyCode.A then moveVec = moveVec - hrp.CFrame.RightVector * flySpeed end
-        if input.KeyCode == Enum.KeyCode.D then moveVec = moveVec + hrp.CFrame.RightVector * flySpeed end
-        if input.KeyCode == Enum.KeyCode.Space then moveVec = moveVec + Vector3.new(0, flySpeed, 0) end
-        if input.KeyCode == Enum.KeyCode.LeftShift then moveVec = moveVec - Vector3.new(0, flySpeed, 0) end
-
-        flyVel.Velocity = moveVec
-    end
-end)
-
--- Noclip
-local function toggleNoclip(state)
-    Config.noclipEnabled = state
-    if state then
-        if not Conns.noclipConn then
-            Conns.noclipConn = RunService.Stepped:Connect(function()
-                if LP.Character then
-                    for _, part in pairs(LP.Character:GetChildren()) do
-                        if part:IsA("BasePart") then
-                            part.CanCollide = false
-                        end
-                    end
-                end
-            end)
-        end
-    else
-        if Conns.noclipConn then
-            Conns.noclipConn:Disconnect()
-            Conns.noclipConn = nil
-        end
-        if LP.Character then
-            for _, part in pairs(LP.Character:GetChildren()) do
-                if part:IsA("BasePart") then
-                    part.CanCollide = true
-                end
-            end
-        end
-    end
-end
-
--- 无限跳跃
-local function toggleInfiniteJump(state)
-    Config.infiniteJump = state
-    if state then
-        if not Conns.infJumpConn then
-            Conns.infJumpConn = UserInputService.JumpRequest:Connect(function()
-                if LP.Character and LP.Character:FindFirstChild("Humanoid") then
-                    LP.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-                end
-            end)
-        end
-    else
-        if Conns.infJumpConn then
-            Conns.infJumpConn:Disconnect()
-            Conns.infJumpConn = nil
-        end
-    end
-end
-
--- ============================================================
--- 保护功能
--- ============================================================
-local function toggleAntiRagdoll(state)
-    Config.antiRagdoll = state
-    if state then
-        if not Conns.antiRagdollConn then
-            Conns.antiRagdollConn = RunService.Heartbeat:Connect(function()
-                if LP.Character and LP.Character:FindFirstChild("Humanoid") then
-                    local humanoid = LP.Character.Humanoid
-                    if humanoid:GetState() == Enum.HumanoidStateType.Physics then
-                        humanoid:ChangeState(Enum.HumanoidStateType.Running)
-                    end
-                end
-            end)
-        end
-    else
-        if Conns.antiRagdollConn then
-            Conns.antiRagdollConn:Disconnect()
-            Conns.antiRagdollConn = nil
-        end
-    end
-end
-
-local function toggleAntiAFK(state)
-    Config.antiAFK = state
-    if state then
-        if not Conns.afkConn then
-            Conns.afkConn = RunService.Heartbeat:Connect(function()
-                pcall(function()
-                    VirtualUser:CaptureController()
-                    VirtualUser:ClickButton2(Vector2.new())
-                end)
-            end)
-        end
-    else
-        if Conns.afkConn then
-            Conns.afkConn:Disconnect()
-            Conns.afkConn = nil
-        end
-    end
-end
-
-local function toggleAntiVoid(state)
-    Config.antiVoid = state
-    if state then
-        if not Conns.antiVoidConn then
-            Conns.antiVoidConn = RunService.Heartbeat:Connect(function()
-                if not LP.Character then return end
-                local hrp = LP.Character:FindFirstChild("HumanoidRootPart")
-                if not hrp then return end
-                if hrp.Position.Y < -50 then
-                    hrp.Position = Vector3.new(0, 10, 0)
-                    Notify("防虚空", "已从虚空传送回来", 2)
-                end
-            end)
-        end
-    else
-        if Conns.antiVoidConn then
-            Conns.antiVoidConn:Disconnect()
-            Conns.antiVoidConn = nil
-        end
-    end
-end
-
-local function toggleAntiFling(state)
-    Config.antiFling = state
-    if state then
-        if not Conns.antiFlingConn then
-            Conns.antiFlingConn = RunService.Heartbeat:Connect(function()
-                if not LP.Character then return end
-                local hrp = LP.Character:FindFirstChild("HumanoidRootPart")
-                if not hrp then return end
-                if hrp.Velocity.Magnitude > 100 then
-                    hrp.Velocity = Vector3.new(0, 0, 0)
-                    Notify("防抛飞", "已阻止抛飞", 2)
-                end
-            end)
-        end
-    else
-        if Conns.antiFlingConn then
-            Conns.antiFlingConn:Disconnect()
-            Conns.antiFlingConn = nil
-        end
-    end
-end
-
-local function toggleAxeRecovery(state)
-    Config.axeRecovery = state
-    if state then
-        Notify("斧头恢复", "当斧头丢失时会自动恢复", 3)
-        task.spawn(function()
-            while Config.axeRecovery do
-                task.wait(10)
-                local hasAxe = false
-                if LP.Character then
-                    local tool = LP.Character:FindFirstChildOfClass("Tool")
-                    if tool and tool:FindFirstChild("ToolName") then
-                        hasAxe = true
-                    end
-                end
-                if not hasAxe then
-                    for _, v in pairs(LP.Backpack:GetChildren()) do
-                        if v:IsA("Tool") and v:FindFirstChild("ToolName") then
-                            hasAxe = true
-                            break
-                        end
-                    end
-                end
-                if not hasAxe then
-                    Notify("斧头恢复", "检测到斧头丢失，尝试恢复...", 3)
-                    for _, v in pairs(WS.LogModels:GetChildren()) do
-                        if v:FindFirstChild("Owner") and v.Owner.Value == LP then
-                            if v:FindFirstChildOfClass("Tool") then
-                                local tool = v:FindFirstChildOfClass("Tool")
-                                tool.Parent = LP.Backpack
-                                Notify("斧头恢复", "已恢复斧头: " .. tool.Name, 3)
-                                break
-                            end
-                        end
-                    end
-                end
-            end
-        end)
-    end
-end
-
--- ============================================================
--- 世界功能
--- ============================================================
-local function toggleTreeCam(state)
-    Config.treeCam = state
-    if state then
-        Notify("树相机", "正在寻找最近的树...", 2)
-        local tree = getBiggestTree(Config.cuttreeselect)
-        if tree then
-            local ws = tree:FindFirstChild("WoodSection")
-            if ws then
-                local cam = workspace.CurrentCamera
-                Conns.treeCamConn = RunService.RenderStepped:Connect(function()
-                    pcall(function()
-                        cam.CFrame = CFrame.new(ws.Position + Vector3.new(10, 5, 10), ws.Position)
-                    end)
-                end)
-                Notify("树相机", "已锁定到树", 2)
-            end
-        else
-            Notify("错误", "没有找到树", 3)
-        end
-    else
-        if Conns.treeCamConn then
-            Conns.treeCamConn:Disconnect()
-            Conns.treeCamConn = nil
-            workspace.CurrentCamera.CameraSubject = LP.Character
-            Notify("树相机", "已关闭", 2)
-        end
-    end
-end
-
-local highlightFolder = nil
-local function toggleESP(state)
-    Config.espEnabled = state
-    if state then
-        highlightFolder = Instance.new("Folder")
-        highlightFolder.Name = "DynxeESP"
-        highlightFolder.Parent = CoreGui
-
-        Conns.espConn = RunService.Heartbeat:Connect(function()
-            for _, tree in pairs(WS.LogModels:GetChildren()) do
-                if tree:FindFirstChild("WoodSection") then
-                    local highlight = tree:FindFirstChild("Highlight")
-                    if not highlight then
-                        highlight = Instance.new("Highlight")
-                        highlight.Name = "Highlight"
-                        highlight.Parent = tree
-                        highlight.OutlineColor = Config.highlightColor
-                        highlight.FillColor = Config.highlightColor
-                        highlight.FillTransparency = 0.5
-                        highlight.OutlineTransparency = 0.2
-                        highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-                    end
-                end
-            end
-        end)
-        Notify("ESP", "已开启", 2)
-    else
-        if Conns.espConn then
-            Conns.espConn:Disconnect()
-            Conns.espConn = nil
-        end
-        if highlightFolder then
-            highlightFolder:Destroy()
-            highlightFolder = nil
-        end
-        for _, tree in pairs(WS.LogModels:GetChildren()) do
-            local highlight = tree:FindFirstChild("Highlight")
-            if highlight then
-                highlight:Destroy()
-            end
-        end
-        Notify("ESP", "已关闭", 2)
-    end
-end
-
--- ============================================================
--- 物品复制功能
--- ============================================================
-local duplicationEnabled = false
-local dupeLoop = nil
-
-local function startDuplication(itemName, count)
-    if duplicationEnabled then return end
-    duplicationEnabled = true
-
-    Notify("复制", "正在复制物品: " .. itemName, 3)
-    dupeLoop = task.spawn(function()
-        local attempts = 0
-        while duplicationEnabled and attempts < count do
-            for _, v in pairs(WS.LogModels:GetChildren()) do
-                if not v:IsDescendantOf(game) then continue end
-                if v:FindFirstChild("Owner") and v.Owner.Value == LP then
-                    if v.Name == itemName or itemName == "" then
-                        local clone = v:Clone()
-                        clone.Parent = WS.LogModels
-                        if clone:FindFirstChild("Owner") then
-                            clone.Owner.Value = LP
-                        end
-                        task.wait(0.1)
-                        attempts = attempts + 1
-                        if attempts >= count then
-                            break
-                        end
-                    end
-                end
-            end
-            task.wait(0.5)
-        end
-        duplicationEnabled = false
-        Notify("复制", "完成复制 " .. attempts .. " 个物品", 3)
-    end)
-end
-
-local function stopDuplication()
-    duplicationEnabled = false
-    if dupeLoop then
-        task.cancel(dupeLoop)
-        dupeLoop = nil
-    end
-    Notify("复制", "已停止复制", 2)
-end
-
--- ============================================================
--- 车辆功能
--- ============================================================
-local function spawnVehicle(modelName)
-    Notify("车辆", "正在生成: " .. modelName, 3)
-    local vehicle = RS:FindFirstChild(modelName)
-    if vehicle then
-        local newVehicle = vehicle:Clone()
-        newVehicle.Parent = WS
-        if LP.Character then
-            local hrp = LP.Character:FindFirstChild("HumanoidRootPart")
-            if hrp then
-                newVehicle:SetPrimaryPartCFrame(hrp.CFrame + Vector3.new(0, 5, 0))
-            end
-        end
-        Notify("车辆", "生成成功", 2)
-    else
-        Notify("错误", "找不到车辆: " .. modelName, 3)
-    end
-end
-
--- ============================================================
--- 商店功能
--- ============================================================
-local buyCooldown = false
-local function buyItem(itemName, quantity)
-    if buyCooldown then return end
-    buyCooldown = true
-    Notify("商店", "正在购买: " .. itemName, 3)
-    task.spawn(function()
-        for i = 1, quantity do
-            pcall(function()
-                RS.Interaction.RemoteProxy:FireServer("BuyItem", itemName)
-            end)
-            task.wait(0.2)
-        end
-        Notify("商店", "购买完成", 2)
-        task.wait(0.5)
-        buyCooldown = false
-    end)
-end
-
--- ============================================================
--- ✅ UI创建 - 延迟加载，避免初始化冲突
--- ============================================================
-task.wait(0.5)
-
-local HomeTab = Window:Tab({
-    Title = "主页",
-    Icon = "house",
-})
-HomeTab:Section({ Title = "Dynxe LT2" })
-HomeTab:Paragraph({
-    Title = "欢迎",
-    Content = "Dynxe LT2 伐木大亨辅助\n版本: v0.0.576【修复版】\n\n选择左侧标签开始使用\n\n功能列表:\n- 自动砍树\n- 自动卖木头\n- 自动赚钱\n- 物品复制\n- 飞行/加速\n- 保护功能\n- 世界修改"
-})
-
--- 砍树标签
-local TreeTab = Window:Tab({ Title = "砍树", Icon = "tree-pine" })
-local TreeSection = TreeTab:Section({ Title = "选择树类型" })
-TreeSection:Dropdown({
-    Title = "选择树",
-    Values = TreeList,
-    Value = "普通树",
-    Callback = function(value)
-        Config.cuttreeselect = TreeMap[value] or "Generic"
-        Notify("选择", "已选择: " .. value, 2)
+        Notify("白", "已完成", 3)
     end
 })
 
-local ControlSection = TreeTab:Section({ Title = "砍树控制" })
-ControlSection:Toggle({
-    Title = "自动砍树",
-    Desc = "自动砍伐选中的树",
-    Value = false,
-    Callback = function(state)
-        if state then
-            if not LP.Character then
-                Notify("错误", "角色不存在", 3)
-                return
-            end
-            Config.treecutset = LP.Character.HumanoidRootPart.CFrame
-            Config.autofarm = true
-            Notify("启动", "自动砍树已开启", 2)
-            startFarm()
-        else
-            stopFarm()
-            Notify("停止", "自动砍树已关闭", 2)
-        end
-    end
-})
-ControlSection:Button({
-    Title = "带来树",
-    Desc = "把树带到你当前位置",
-    Callback = function()
-        if not LP.Character then
-            Notify("错误", "角色不存在", 3)
-            return
-        end
-        Config.treecutset = LP.Character.HumanoidRootPart.CFrame
-        bringTree(Config.cuttreeselect)
-    end
-})
-ControlSection:Button({
-    Title = "停止砍树",
-    Desc = "立即停止所有砍树操作",
-    Callback = function()
-        stopFarm()
-        stopMoney()
-        Notify("停止", "已停止所有砍树操作", 2)
-    end
-})
-
--- 赚钱标签
-local MoneyTab = Window:Tab({ Title = "赚钱", Icon = "coins" })
-local MoneySection = MoneyTab:Section({ Title = "自动赚钱" })
-MoneySection:Toggle({
-    Title = "自动赚钱",
-    Desc = "砍树并自动卖木头",
-    Value = false,
-    Callback = function(state)
-        if state then
-            Notify("启动", "自动赚钱已开启", 2)
-            startMoney()
-        else
-            stopMoney()
-            Notify("停止", "自动赚钱已关闭", 2)
-        end
-    end
-})
-
--- 卖木头标签
-local SellTab = Window:Tab({ Title = "卖木头", Icon = "warehouse" })
-local SellSection = SellTab:Section({ Title = "木头管理" })
-SellSection:Button({
+WoodSection:Button({
     Title = "卖所有木头",
-    Desc = "卖掉你所有的木头",
+    Desc = "卖掉所有木头",
     Callback = function()
         sellWood()
-        Notify("完成", "已卖出所有木头", 2)
+        Notify("白", "已卖出所有木头", 3)
     end
 })
-SellSection:Toggle({
+
+WoodSection:Button({
+    Title = "卖所有木板",
+    Desc = "卖掉所有木板",
+    Callback = function()
+        sellPlanks()
+        Notify("白", "已卖出所有木板", 3)
+    end
+})
+
+WoodSection:Toggle({
     Title = "自动卖木头",
     Desc = "自动卖掉所有木头",
     Value = false,
     Callback = function(state)
+        bai.autosell = state
         if state then
-            Config.autosell = true
-            Notify("启动", "自动卖木头已开启", 2)
-            startSell()
-        else
-            stopSell()
-            Notify("停止", "自动卖木头已关闭", 2)
+            task.spawn(function()
+                while bai.autosell do
+                    sellWood()
+                    task.wait(2)
+                end
+            end)
         end
     end
 })
-SellSection:Toggle({
-    Title = "自动收集木头",
-    Desc = "自动收集所有你的木头到当前位置",
+
+WoodSection:Toggle({
+    Title = "自动卖木板",
+    Desc = "自动卖掉所有木板",
+    Value = false,
+    Callback = function(state)
+        bai.autosellPlanks = state
+        if state then
+            task.spawn(function()
+                while bai.autosellPlanks do
+                    sellPlanks()
+                    task.wait(2)
+                end
+            end)
+        end
+    end
+})
+
+-- 砍树
+BringTreeSection:Dropdown({
+    Title = "选择树类型",
+    Values = TreeList,
+    Value = "普通树",
+    Callback = function(value)
+        bai.cuttreeselect = TreeMap[value] or "Generic"
+        Notify("白", "已选择: " .. value, 2)
+    end
+})
+
+BringTreeSection:Textbox({
+    Title = "带来树的数量",
+    Desc = "每次带来树的数量",
+    Value = "1",
+    Callback = function(value)
+        bai.bringamount = tonumber(value) or 1
+    end
+})
+
+BringTreeSection:Button({
+    Title = "带来树",
+    Desc = "把树带到当前位置",
+    Callback = function()
+        if not LP.Character then
+            Notify("白", "角色不存在", 3)
+            return
+        end
+        bai.treecutset = LP.Character.HumanoidRootPart.CFrame
+        bai.bringtree = true
+        for i = 1, bai.bringamount do
+            if not bai.bringtree then break end
+            bringTree(bai.cuttreeselect)
+            task.wait(0.5)
+        end
+        Notify("白", "已完成", 3)
+    end
+})
+
+BringTreeSection:Button({
+    Title = "停止砍树",
+    Desc = "停止所有砍树操作",
+    Callback = function()
+        bai.bringtree = false
+        bai.autofarm = false
+        bai.autofarm1 = false
+        Notify("白", "已停止", 2)
+    end
+})
+
+BringTreeSection:Toggle({
+    Title = "自动砍树",
+    Desc = "自动砍伐选中的树",
+    Value = false,
+    Callback = function(state)
+        bai.autofarm = state
+        if state then
+            task.spawn(function()
+                while bai.autofarm do
+                    bringTree(bai.cuttreeselect)
+                    task.wait(0.5)
+                end
+            end)
+        end
+    end
+})
+
+-- 赚钱
+MoneySection:Toggle({
+    Title = "自动赚钱",
+    Desc = "自动砍树并卖木头",
+    Value = false,
+    Callback = function(state)
+        bai.autofarm1 = state
+        if state then
+            Notify("白", "请确保自动卖木头已开启", 3)
+            task.spawn(function()
+                while bai.autofarm1 do
+                    autofarm(bai.cuttreeselect)
+                    task.wait(1)
+                    sellWood()
+                    task.wait(20)
+                end
+            end)
+        end
+    end
+})
+
+-- ============================================================
+-- 环境标签
+-- ============================================================
+local EnvTab = Window:Tab({ Title = "环境", Icon = "sun" })
+local EnvSection = EnvTab:Section({ Title = "环境修改" })
+
+EnvSection:Toggle({
+    Title = "终日白天",
+    Desc = "锁定时间为白天",
+    Value = false,
+    Callback = function(state)
+        bai.awaysday = state
+        if state then
+            task.spawn(function()
+                while bai.awaysday do
+                    game:GetService('Lighting').TimeOfDay = '12:00:00'
+                    task.wait(0.5)
+                end
+            end)
+        end
+    end
+})
+
+EnvSection:Toggle({
+    Title = "终日黑夜",
+    Desc = "锁定时间为黑夜",
+    Value = false,
+    Callback = function(state)
+        bai.awaysdnight = state
+        if state then
+            task.spawn(function()
+                while bai.awaysdnight do
+                    game:GetService('Lighting').TimeOfDay = '02:00:00'
+                    task.wait(0.5)
+                end
+            end)
+        end
+    end
+})
+
+EnvSection:Toggle({
+    Title = "消除阴影",
+    Desc = "开启/关闭阴影",
+    Value = false,
+    Callback = function(state)
+        game:GetService("Lighting").GlobalShadows = not state
+    end
+})
+
+EnvSection:Toggle({
+    Title = "去除雾",
+    Desc = "开启/关闭雾效",
+    Value = false,
+    Callback = function(state)
+        bai.nofog = state
+        if state then
+            task.spawn(function()
+                while bai.nofog do
+                    game:GetService('Lighting').FogEnd = 1000000
+                    task.wait(0.5)
+                end
+            end)
+        else
+            game:GetService('Lighting').FogEnd = 10000
+        end
+    end
+})
+
+EnvSection:Toggle({
+    Title = "水上行走",
+    Desc = "在水面上行走",
+    Value = false,
+    Callback = function(state)
+        bai.waterwalk = state
+        for _, v in pairs(WS.Water:GetChildren()) do
+            if v:IsA("Part") then
+                v.CanCollide = state
+            end
+        end
+        for _, v in pairs(WS.Bridge.VerticalLiftBridge.WaterModel:GetChildren()) do
+            if v:IsA("BasePart") then
+                v.CanCollide = state
+            end
+        end
+    end
+})
+
+EnvSection:Toggle({
+    Title = "放下桥",
+    Desc = "放下/升起桥",
     Value = false,
     Callback = function(state)
         if state then
-            if not LP.Character then
-                Notify("错误", "角色不存在", 3)
-                return
-            end
-            Config.treecutset = LP.Character.HumanoidRootPart.CFrame
-            Config.autoCollect = true
-            Notify("启动", "自动收集已开启", 2)
-            startCollect()
+            lowerBridge("Lower")
         else
-            stopCollect()
-            Notify("停止", "自动收集已关闭", 2)
+            lowerBridge("Higher")
         end
     end
 })
-SellSection:Button({
-    Title = "收集所有木头",
-    Desc = "把所有木头收集到当前位置",
-    Callback = function()
-        if not LP.Character then
-            Notify("错误", "角色不存在", 3)
-            return
-        end
-        Config.treecutset = LP.Character.HumanoidRootPart.CFrame
-        collectWood()
-        Notify("完成", "已收集所有木头", 2)
+
+EnvSection:Slider({
+    Title = "亮度",
+    Desc = "修改游戏亮度",
+    Min = 0,
+    Max = 100,
+    Default = 0,
+    Callback = function(value)
+        game:GetService("Lighting").Brightness = value / 10
     end
 })
-SellSection:Button({
-    Title = "传送木头到卖点",
-    Desc = "把木头传送到锯木机",
+
+EnvSection:Button({
+    Title = "删除火山石头",
+    Desc = "删除火山区域的石头",
     Callback = function()
-        if not LP.Character then return end
-        local oldPos = LP.Character.HumanoidRootPart.CFrame
-        for _, v in pairs(WS.LogModels:GetChildren()) do
-            if v:FindFirstChild("Owner") and v.Owner.Value == LP then
-                if not v.PrimaryPart then
-                    v.PrimaryPart = v:FindFirstChild("WoodSection")
-                end
-                task.spawn(function()
-                    for i = 1, 50 do
-                        pcall(function()
-                            RS.Interaction.ClientIsDragging:FireServer(v)
-                        end)
-                        task.wait(0.05)
+        for _, v in pairs(WS["Region_Volcano"]:GetChildren()) do
+            if v.Name == "PartSpawner" then
+                v.Parent = game.Lighting
+            end
+        end
+        Notify("白", "已完成", 3)
+    end
+})
+
+EnvSection:Button({
+    Title = "删除雪山石头",
+    Desc = "删除雪山区域的石头",
+    Callback = function()
+        for _, v in pairs(WS["Region_Snow"]:GetChildren()) do
+            if v.Name == "PartSpawner" then
+                v.Parent = game.Lighting
+            end
+        end
+        Notify("白", "已完成", 3)
+    end
+})
+
+EnvSection:Button({
+    Title = "删除灵视神殿石头",
+    Desc = "删除灵视神殿的石头",
+    Callback = function()
+        pcall(function()
+            WS.Region_Mountainside.BoulderRegen.Boulder:Destroy()
+            WS.Region_Mountainside.Door.Door:Destroy()
+        end)
+        Notify("白", "已完成", 3)
+    end
+})
+
+EnvSection:Button({
+    Title = "删除迷宫门",
+    Desc = "删除迷宫的所有门",
+    Callback = function()
+        local doors = {"Blockade0", "Blockade1", "Blockade2", "Blockade3", "Blockade4", "Blockade5", "Blockade6", "Blockade7"}
+        for _, doorName in pairs(doors) do
+            pcall(function()
+                local door = WS['Region_MazeCave'].Blockade[doorName]
+                if door then door:Destroy() end
+            end)
+        end
+        Notify("白", "已完成", 3)
+    end
+})
+
+EnvSection:Button({
+    Title = "删除岩浆",
+    Desc = "删除火山岩浆",
+    Callback = function()
+        for _, v in pairs(WS.Region_Volcano:GetDescendants()) do
+            if v.Name == "TouchInterest" then
+                v:Destroy()
+            elseif v.Name == "Lava" then
+                for _, k in pairs(v:GetChildren()) do
+                    if k:IsA("Part") then
+                        k.Transparency = 1
                     end
-                end)
-                for i = 1, 50 do
-                    task.wait(0.05)
-                    pcall(function()
-                        v:PivotTo(oldPos)
-                    end)
                 end
             end
         end
-        Notify("完成", "已传送所有木头", 2)
+        Notify("白", "已完成", 3)
     end
 })
 
--- 工具标签
-local ToolTab = Window:Tab({ Title = "工具", Icon = "wrench" })
-local ToolSection = ToolTab:Section({ Title = "斧头管理" })
-ToolSection:Button({
-    Title = "获取最佳斧头",
-    Desc = "显示当前最佳斧头",
+EnvSection:Button({
+    Title = "启动所有压力板",
+    Desc = "激活所有商店压力板",
     Callback = function()
-        local tool = getBestAxe(Config.cuttreeselect)
-        if tool then
-            Notify("最佳斧头", tool.Name .. " - " .. tool.ToolName.Value, 3)
-        end
-    end
-})
-ToolSection:Button({
-    Title = "显示所有斧头",
-    Desc = "列出背包中所有斧头",
-    Callback = function()
-        local tools = getTools()
-        if #tools == 0 then
-            Notify("信息", "没有找到斧头", 3)
-            return
-        end
-        local msg = ""
-        for _, v in pairs(tools) do
-            if v:FindFirstChild("ToolName") then
-                msg = msg .. v.Name .. " (" .. v.ToolName.Value .. ")\n"
+        for _, v in pairs(WS.PlayerModels:GetChildren()) do
+            if v:FindFirstChild("ItemName") and v.ItemName.Value == "PressurePlate" then
+                if v.Output.BrickColor ~= BrickColor.new("Electric blue") then
+                    repeat
+                        task.wait()
+                        if LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then
+                            LP.Character.HumanoidRootPart.CFrame = CFrame.new(v.Plate.CFrame.p + Vector3.new(0, 0.3, 0))
+                        end
+                    until v.Output.BrickColor == BrickColor.new("Electric blue")
+                end
             end
         end
-        Notify("所有斧头", msg, 5)
+        Notify("白", "已完成", 3)
     end
 })
 
-local PlayerSection = ToolTab:Section({ Title = "玩家修改" })
-PlayerSection:Slider({
-    Title = "移动速度",
-    Desc = "修改玩家移动速度",
-    Min = 0,
-    Max = 200,
-    Default = 16,
+-- ============================================================
+-- 自动购买标签
+-- ============================================================
+local ShopTab = Window:Tab({ Title = "自动购买", Icon = "shopping-cart" })
+local ShopSection1 = ShopTab:Section({ Title = "自动购买V2" })
+local ShopSection2 = ShopTab:Section({ Title = "其他" })
+
+ShopSection1:Dropdown({
+    Title = "选择物品",
+    Values = ShopItems,
+    Value = "普通斧头",
     Callback = function(value)
-        setSpeed(value)
+        bai.shopItem = ShopItemMap[value] or "Axe1"
     end
 })
-PlayerSection:Slider({
-    Title = "跳跃高度",
-    Desc = "修改玩家跳跃高度",
-    Min = 0,
-    Max = 200,
-    Default = 50,
+
+ShopSection1:Textbox({
+    Title = "购买数量",
+    Desc = "要购买的数量",
+    Value = "1",
     Callback = function(value)
-        setJumpPower(value)
-    end
-})
-PlayerSection:Toggle({
-    Title = "飞行模式",
-    Desc = "开启/关闭飞行 (WASD移动，空格上升，Shift下降)",
-    Value = false,
-    Callback = function(state)
-        toggleFly(state)
-        if state then
-            Notify("飞行", "已开启\nWASD移动 | 空格上升 | Shift下降", 3)
-        else
-            Notify("飞行", "已关闭", 2)
-        end
-    end
-})
-PlayerSection:Toggle({
-    Title = "穿墙模式 (Noclip)",
-    Desc = "开启/关闭穿墙",
-    Value = false,
-    Callback = function(state)
-        toggleNoclip(state)
-        Notify("穿墙", state and "已开启" or "已关闭", 2)
-    end
-})
-PlayerSection:Toggle({
-    Title = "无限跳跃",
-    Desc = "开启/关闭无限跳跃",
-    Value = false,
-    Callback = function(state)
-        toggleInfiniteJump(state)
-        Notify("无限跳跃", state and "已开启" or "已关闭", 2)
-    end
-})
-PlayerSection:Button({
-    Title = "重置速度",
-    Desc = "重置移动速度和跳跃力",
-    Callback = function()
-        setSpeed(16)
-        setJumpPower(50)
-        Notify("重置", "速度已重置", 2)
-    end
-})
-PlayerSection:Button({
-    Title = "安全自杀",
-    Desc = "快速重生",
-    Callback = function()
-        if LP.Character and LP.Character:FindFirstChild("Head") then
-            LP.Character.Head:Destroy()
-            Notify("重生", "正在重生...", 2)
-        end
+        bai.autobuyamount = tonumber(value) or 1
     end
 })
 
--- 保护标签
-local ProtectionTab = Window:Tab({ Title = "保护", Icon = "shield" })
-local ProtectionSection = ProtectionTab:Section({ Title = "保护功能" })
-ProtectionSection:Toggle({
-    Title = "防布娃娃",
-    Desc = "防止角色倒地/布娃娃状态",
-    Value = false,
-    Callback = function(state)
-        toggleAntiRagdoll(state)
-        Notify("防布娃娃", state and "已开启" or "已关闭", 2)
-    end
-})
-ProtectionSection:Toggle({
-    Title = "防AFK",
-    Desc = "防止被踢出游戏",
-    Value = false,
-    Callback = function(state)
-        toggleAntiAFK(state)
-        Notify("防AFK", state and "已开启" or "已关闭", 2)
-    end
-})
-ProtectionSection:Toggle({
-    Title = "防虚空",
-    Desc = "掉到虚空时自动传送回来",
-    Value = false,
-    Callback = function(state)
-        toggleAntiVoid(state)
-        Notify("防虚空", state and "已开启" or "已关闭", 2)
-    end
-})
-ProtectionSection:Toggle({
-    Title = "防抛飞",
-    Desc = "防止被其他玩家抛飞",
-    Value = false,
-    Callback = function(state)
-        toggleAntiFling(state)
-        Notify("防抛飞", state and "已开启" or "已关闭", 2)
-    end
-})
-ProtectionSection:Toggle({
-    Title = "斧头恢复",
-    Desc = "自动检测并恢复丢失的斧头",
-    Value = false,
-    Callback = function(state)
-        toggleAxeRecovery(state)
-    end
-})
-
--- 世界标签
-local WorldTab = Window:Tab({ Title = "世界", Icon = "globe" })
-local WorldSection = WorldTab:Section({ Title = "世界修改" })
-WorldSection:Button({
-    Title = "传送到树",
-    Desc = "传送到选中的树的位置",
-    Callback = function()
-        local tree = getBiggestTree(Config.cuttreeselect)
-        if tree then
-            local ws = tree:FindFirstChild("WoodSection")
-            if ws then
-                tp(ws.CFrame + Vector3.new(0, 5, 0))
-                Notify("传送", "已传送到树", 2)
-            end
-        else
-            Notify("错误", "没有找到树", 3)
-        end
-    end
-})
-WorldSection:Button({
-    Title = "传送到卖点",
-    Desc = "传送到锯木机位置",
-    Callback = function()
-        tp(Vector3.new(315, -0.296, 85.791))
-        Notify("传送", "已传送到卖点", 2)
-    end
-})
-WorldSection:Button({
-    Title = "传送到最近玩家",
-    Desc = "传送到最近的玩家位置",
-    Callback = function()
-        local target = getNearestTeleport()
-        if target and target:FindFirstChild("HumanoidRootPart") then
-            tp(target.HumanoidRootPart.CFrame + Vector3.new(0, 3, 0))
-            Notify("传送", "已传送到 " .. target.Name, 2)
-        else
-            Notify("错误", "没有找到玩家", 3)
-        end
-    end
-})
-WorldSection:Toggle({
-    Title = "树相机",
-    Desc = "相机锁定到最近的树",
-    Value = false,
-    Callback = function(state)
-        toggleTreeCam(state)
-    end
-})
-WorldSection:Toggle({
-    Title = "木头ESP",
-    Desc = "高亮显示地上的木头",
-    Value = false,
-    Callback = function(state)
-        toggleESP(state)
-    end
-})
-WorldSection:Colorpicker({
-    Title = "ESP颜色",
-    Desc = "选择ESP高亮颜色",
-    Default = Config.highlightColor,
-    Callback = function(color)
-        Config.highlightColor = color
-        for _, tree in pairs(WS.LogModels:GetChildren()) do
-            local highlight = tree:FindFirstChild("Highlight")
-            if highlight then
-                highlight.OutlineColor = color
-                highlight.FillColor = color
-            end
-        end
-    end
-})
-
--- 传送标签
-local TeleportTab = Window:Tab({ Title = "传送", Icon = "map-pin" })
-local TeleportSection = TeleportTab:Section({ Title = "传送点管理" })
-local TeleportPoints = {}
-local pointIndex = 0
-TeleportSection:Button({
-    Title = "保存当前位置",
-    Desc = "保存当前坐标作为传送点",
+ShopSection1:Button({
+    Title = "开始购买",
+    Desc = "自动购买选中的物品",
     Callback = function()
         if not LP.Character then
-            Notify("错误", "角色不存在", 3)
+            Notify("白", "角色不存在", 3)
             return
         end
-        local hrp = LP.Character:FindFirstChild("HumanoidRootPart")
-        if hrp then
-            pointIndex = pointIndex + 1
-            TeleportPoints[pointIndex] = {
-                name = "传送点" .. pointIndex,
-                pos = hrp.CFrame
-            }
-            Notify("保存", "已保存传送点" .. pointIndex, 2)
-        end
+        bai.autobuystop = false
+        bai.autobuyset = LP.Character.HumanoidRootPart.CFrame
+        autobuy(bai.shopItem or "Axe1", bai.autobuyamount)
+        tp(bai.autobuyset)
+        Notify("白", "购买完成", 3)
     end
 })
-TeleportSection:Dropdown({
-    Title = "选择传送点",
-    Values = (function()
-        local names = {}
-        for i, v in pairs(TeleportPoints) do
-            names[i] = v.name
+
+ShopSection1:Button({
+    Title = "停止购买",
+    Desc = "停止自动购买",
+    Callback = function()
+        bai.autobuystop = true
+        if bai.autocsdx then
+            bai.autocsdx:Disconnect()
+            bai.autocsdx = nil
         end
-        return names
-    end)(),
+        Notify("白", "已停止", 2)
+    end
+})
+
+ShopSection2:Button({
+    Title = "买黄金蓝图",
+    Desc = "购买黄金蓝图",
+    Callback = function()
+        RS.NPCDialog.PlayerChatted:InvokeServer({
+            ['Character'] = WS.Region_Main['Strange Man'],
+            ['Name'] = 'Strange Man',
+            ['ID'] = getSpecialID('Strange Man'),
+            ['Dialog'] = WS.Region_Main['Strange Man'].Dialog
+        }, 'ConfirmPurchase')
+        Notify("白", "已购买", 3)
+    end
+})
+
+ShopSection2:Button({
+    Title = "买桥",
+    Desc = "购买桥通行证",
+    Callback = function()
+        RS.NPCDialog.PlayerChatted:InvokeServer({
+            ['Character'] = WS.Bridge.TollBooth0.Seranok,
+            ['Name'] = 'Seranok',
+            ['ID'] = getSpecialID('Seranok'),
+            ['Dialog'] = WS.Bridge.TollBooth0.Seranok.Dialog
+        }, 'ConfirmPurchase')
+        Notify("白", "已购买", 3)
+    end
+})
+
+ShopSection2:Button({
+    Title = "买船票",
+    Desc = "购买船票",
+    Callback = function()
+        RS.NPCDialog.PlayerChatted:InvokeServer({
+            ['Character'] = WS.Ferry.Ferry.Hoover,
+            ['Name'] = 'Hoover',
+            ['ID'] = getSpecialID('Hoover'),
+            ['Dialog'] = WS.Ferry.Ferry.Hoover.Dialog
+        }, 'ConfirmPurchase')
+        Notify("白", "已购买", 3)
+    end
+})
+
+ShopSection2:Button({
+    Title = "买鲨鱼斧头",
+    Desc = "自动购买鲨鱼斧头材料",
+    Callback = function()
+        local oldPos = LP.Character.HumanoidRootPart.CFrame.Position
+        bai.autobuystop = false
+        bai.autobuyset = CFrame.new(319, 43, 1914)
+        autobuy("BagOfSand", 1)
+        task.wait(0.1)
+        bai.autobuyset = CFrame.new(317, 43, 1918)
+        autobuy('CanOfWorms', 1)
+        task.wait(0.1)
+        bai.autobuyset = CFrame.new(322, 43, 1916)
+        autobuy('LightBulb', 1)
+        tp(bai.autobuyset)
+        Notify("白", "鲨鱼斧头材料已购买", 3)
+    end
+})
+
+-- ============================================================
+-- 魔鬼功能标签
+-- ============================================================
+local DevilTab = Window:Tab({ Title = "魔鬼功能", Icon = "skull" })
+local DevilSection = DevilTab:Section({ Title = "魔鬼功能(慎用)" })
+
+DevilSection:Dropdown({
+    Title = "选择玩家",
+    Values = bai.dropdown,
     Value = "",
     Callback = function(value)
-        for i, v in pairs(TeleportPoints) do
-            if v.name == value then
-                tp(v.pos)
-                Notify("传送", "已传送到 " .. value, 2)
+        bai.playernamedied = value
+    end
+})
+
+DevilSection:Button({
+    Title = "刷新列表",
+    Desc = "刷新玩家列表",
+    Callback = function()
+        shuaxinlb(true)
+        Notify("白", "已刷新", 2)
+    end
+})
+
+DevilSection:Button({
+    Title = "传送到玩家旁边",
+    Desc = "传送到目标玩家位置",
+    Callback = function()
+        local target = Players:FindFirstChild(bai.playernamedied)
+        if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+            tp(target.Character.HumanoidRootPart.CFrame + Vector3.new(0, 3, 0))
+            Notify("白", "已传送到 " .. bai.playernamedied, 3)
+        else
+            Notify("白", "玩家不存在", 3)
+        end
+    end
+})
+
+DevilSection:Button({
+    Title = "传送到玩家基地",
+    Desc = "传送到目标玩家基地",
+    Callback = function()
+        for _, v in pairs(WS.Properties:GetChildren()) do
+            if v.Owner.Value == Players:FindFirstChild(bai.playernamedied) then
+                tp(v.OriginSquare.CFrame + Vector3.new(0, 10, 0))
+                Notify("白", "已传送到 " .. bai.playernamedied .. " 的基地", 3)
+                return
+            end
+        end
+        Notify("白", "没有找到该玩家的基地", 3)
+    end
+})
+
+DevilSection:Button({
+    Title = "斧头杀人",
+    Desc = "使用斧头攻击目标玩家",
+    Callback = function()
+        local target = Players:FindFirstChild(bai.playernamedied)
+        if not target then
+            Notify("白", "玩家不存在", 3)
+            return
+        end
+        local tool = getTool()
+        if not tool then
+            Notify("白", "你需要斧头", 3)
+            return
+        end
+
+        -- 简化版斧头攻击
+        if target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+            local oldpos = getPosition()
+            local hrp = target.Character.HumanoidRootPart
+            hrp.Anchored = true
+            tp(hrp.CFrame + Vector3.new(0, 2, 0))
+            task.wait(0.1)
+            hrp.Anchored = false
+            if target.Character:FindFirstChild("Humanoid") then
+                target.Character.Humanoid.Health = 0
+            end
+            tp(oldpos)
+            Notify("白", "已攻击 " .. bai.playernamedied, 3)
+        end
+    end
+})
+
+DevilSection:Button({
+    Title = "虚空搞人",
+    Desc = "把目标玩家传送到虚空",
+    Callback = function()
+        local target = Players:FindFirstChild(bai.playernamedied)
+        if not target or not target.Character then
+            Notify("白", "玩家不存在", 3)
+            return
+        end
+        local oldpos = getPosition()
+        local now = CFrame.new(9e9, 9e9, 9e9)
+        tp(now)
+        task.wait(0.1)
+        if target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+            target.Character.HumanoidRootPart.CFrame = now
+        end
+        task.wait(0.3)
+        tp(oldpos)
+        Notify("白", "已传送 " .. bai.playernamedied .. " 到虚空", 3)
+    end
+})
+
+DevilSection:Button({
+    Title = "岩浆杀人",
+    Desc = "把目标玩家传送到岩浆",
+    Callback = function()
+        local target = Players:FindFirstChild(bai.playernamedied)
+        if not target or not target.Character then
+            Notify("白", "玩家不存在", 3)
+            return
+        end
+        local oldpos = getPosition()
+        local now = CFrame.new(-1685, 200, 1216)
+        tp(now)
+        task.wait(0.1)
+        if target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+            target.Character.HumanoidRootPart.CFrame = now
+        end
+        task.wait(0.3)
+        tp(oldpos)
+        Notify("白", "已传送 " .. bai.playernamedied .. " 到岩浆", 3)
+    end
+})
+
+DevilSection:Toggle({
+    Title = "查看玩家",
+    Desc = "相机锁定到目标玩家",
+    Value = false,
+    Callback = function(state)
+        if state then
+            local target = Players:FindFirstChild(bai.playernamedied)
+            if target and target.Character then
+                WS.CurrentCamera.CameraSubject = target.Character.Humanoid
+            end
+        else
+            WS.CurrentCamera.CameraSubject = LP.Character.Humanoid
+        end
+    end
+})
+
+DevilSection:Toggle({
+    Title = "查看玩家基地",
+    Desc = "相机锁定到目标玩家基地",
+    Value = false,
+    Callback = function(state)
+        local see
+        for _, v in pairs(WS.Properties:GetChildren()) do
+            if v.Owner.Value == Players:FindFirstChild(bai.playernamedied) then
+                see = v.OriginSquare
                 break
             end
         end
-    end
-})
-TeleportSection:Button({
-    Title = "清除所有传送点",
-    Desc = "删除所有保存的传送点",
-    Callback = function()
-        TeleportPoints = {}
-        pointIndex = 0
-        Notify("清除", "已清除所有传送点", 2)
-    end
-})
-
--- 复制标签
-local DupeTab = Window:Tab({ Title = "复制", Icon = "copy" })
-local DupeSection = DupeTab:Section({ Title = "物品复制" })
-local dupeItemName = ""
-local dupeCount = 10
-DupeSection:Input({
-    Title = "物品名称",
-    Desc = "输入要复制的物品名称 (留空复制所有)",
-    Value = "",
-    Callback = function(value)
-        dupeItemName = value
-    end
-})
-DupeSection:Slider({
-    Title = "复制数量",
-    Desc = "要复制的物品数量",
-    Min = 1,
-    Max = 100,
-    Default = 10,
-    Callback = function(value)
-        dupeCount = value
-    end
-})
-DupeSection:Button({
-    Title = "开始复制",
-    Desc = "开始复制指定物品",
-    Callback = function()
-        if not LP.Character then
-            Notify("错误", "角色不存在", 3)
-            return
-        end
-        startDuplication(dupeItemName, dupeCount)
-    end
-})
-DupeSection:Button({
-    Title = "停止复制",
-    Desc = "停止复制操作",
-    Callback = function()
-        stopDuplication()
-    end
-})
-
--- 车辆标签
-local VehicleTab = Window:Tab({ Title = "车辆", Icon = "car" })
-local VehicleSection = VehicleTab:Section({ Title = "车辆管理" })
-local function getVehicleList()
-    local vehicles = {}
-    for _, v in pairs(RS:GetChildren()) do
-        if v:IsA("Model") and v:FindFirstChild("HumanoidRootPart") then
-            table.insert(vehicles, v.Name)
-        end
-    end
-    return vehicles
-end
-VehicleSection:Dropdown({
-    Title = "选择车辆",
-    Values = (function()
-        local list = getVehicleList()
-        if #list == 0 then
-            return { "默认车辆" }
-        end
-        return list
-    end)(),
-    Value = "",
-    Callback = function(value)
-        if value and value ~= "" and value ~= "默认车辆" then
-            spawnVehicle(value)
+        if state and see then
+            WS.CurrentCamera.CameraSubject = see
+        else
+            WS.CurrentCamera.CameraSubject = LP.Character.Humanoid
         end
     end
 })
-VehicleSection:Button({
-    Title = "刷新车辆列表",
-    Desc = "重新获取可用车辆列表",
-    Callback = function()
-        Notify("刷新", "车辆列表已刷新", 2)
-    end
-})
 
--- 商店标签
-local ShopTab = Window:Tab({ Title = "商店", Icon = "store" })
-local ShopSection = ShopTab:Section({ Title = "商店功能" })
-local shopItems = {
-    "BasicAxe",
-    "RukiryAxe",
-    "SteelAxe",
-    "DiamondAxe",
-    "EndTimesAxe",
-}
-ShopSection:Dropdown({
-    Title = "选择物品",
-    Values = shopItems,
-    Value = "BasicAxe",
-    Callback = function(value)
-        dupeItemName = value
-    end
-})
-ShopSection:Slider({
-    Title = "购买数量",
-    Desc = "要购买的数量",
-    Min = 1,
-    Max = 50,
-    Default = 1,
-    Callback = function(value)
-        dupeCount = value
-    end
-})
-ShopSection:Button({
-    Title = "购买物品",
-    Desc = "从商店购买选中的物品",
-    Callback = function()
-        buyItem(dupeItemName, dupeCount)
-    end
-})
-
--- 建造标签
-local BuildTab = Window:Tab({ Title = "建造", Icon = "hammer" })
-local BuildSection = BuildTab:Section({ Title = "建造辅助" })
-BuildSection:Toggle({
-    Title = "快速放置",
-    Desc = "加快建造放置速度",
-    Value = false,
-    Callback = function(state)
-        Notify("快速放置", state and "已开启" or "已关闭", 2)
-    end
-})
-BuildSection:Toggle({
-    Title = "无视碰撞",
-    Desc = "建造时忽略碰撞检测",
-    Value = false,
-    Callback = function(state)
-        Notify("无视碰撞", state and "已开启" or "已关闭", 2)
-    end
-})
-
+-- ============================================================
 -- 设置标签
+-- ============================================================
 local SettingsTab = Window:Tab({ Title = "设置", Icon = "settings" })
 local SettingsSection = SettingsTab:Section({ Title = "菜单设置" })
+
 SettingsSection:Button({
     Title = "关闭菜单",
-    Desc = "关闭并销毁菜单，清理全部后台线程与连接",
+    Desc = "关闭并销毁菜单",
     Callback = function()
-        stopFarm()
-        stopSell()
-        stopCollect()
-        stopMoney()
-        stopDuplication()
-        toggleFly(false)
-        toggleNoclip(false)
-        toggleInfiniteJump(false)
-        toggleAntiRagdoll(false)
-        toggleAntiAFK(false)
-        toggleAntiVoid(false)
-        toggleAntiFling(false)
-        toggleTreeCam(false)
-        toggleESP(false)
-        if charConn then charConn:Disconnect() end
+        if bai.noclipConn then bai.noclipConn:Disconnect() end
         Window:Destroy()
-        Notify("关闭", "菜单已关闭，全部后台任务已清理", 2)
+        Notify("白", "菜单已关闭", 2)
     end
 })
 
 -- ============================================================
--- ✅ 最终启动通知
+-- 启动通知
 -- ============================================================
 task.wait(0.5)
-Notify("Dynxe LT2【修复版】", "全部功能加载完成！\n版本: v0.0.576‑fix", 5)
-print("✅ Dynxe LT2【修复版】全部功能已加载完成！")
+Notify("白脚本", "全部功能加载完成！\n欢迎使用白脚本", 5)
+print("✅ 白脚本已加载完成！")
