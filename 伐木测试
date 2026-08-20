@@ -24,14 +24,11 @@ local Window = WindUI:CreateWindow({
 })
 
 -- ============================================================
--- ✅【关键修复】Notify 安全封装 - 使用 WindUI:Notify
+-- ✅ Notify 安全封装
 -- ============================================================
 local function Notify(Title, Text, Duration)
     Duration = Duration or 3
-    -- 打印到控制台
     print(string.format("[%s] %s", Title, Text))
-    
-    -- 使用 pcall 保护，调用 WindUI:Notify（注意冒号）
     local success, err = pcall(function()
         if WindUI and WindUI.Notify then
             WindUI:Notify({
@@ -41,9 +38,8 @@ local function Notify(Title, Text, Duration)
             })
         end
     end)
-    
     if not success then
-        warn("Notify 失败: " .. tostring(err))
+        warn("Notify失败: " .. tostring(err))
     end
 end
 
@@ -58,6 +54,7 @@ local CoreGui = game:GetService("CoreGui")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local VirtualUser = game:GetService("VirtualUser")
+local TweenService = game:GetService("TweenService")
 
 -- ============================================================
 -- 配置表
@@ -141,7 +138,7 @@ for _, data in ipairs(TreeData) do
 end
 
 -- ============================================================
--- 工具函数
+-- ✅ 工具函数 - 全部添加 pcall 保护
 -- ============================================================
 local function getTools()
     local tools = {}
@@ -162,10 +159,17 @@ local function getTools()
 end
 
 local function getToolStats(toolName)
-    if typeof(toolName) ~= "string" then
-        toolName = toolName.ToolName.Value
+    local success, result = pcall(function()
+        if typeof(toolName) ~= "string" then
+            toolName = toolName.ToolName.Value
+        end
+        return require(RS.AxeClasses['AxeClass_' .. toolName]).new()
+    end)
+    if success then
+        return result
+    else
+        return { Damage = 10, SwingCooldown = 0.1 }
     end
-    return require(RS.AxeClasses['AxeClass_' .. toolName]).new()
 end
 
 local function getBestAxe(treeClass)
@@ -190,14 +194,14 @@ local function getBestAxe(treeClass)
         local stats = getToolStats(v)
         table.insert(sorted, {
             tool = v,
-            damage = stats.Damage
+            damage = stats.Damage or 10
         })
     end
     table.sort(sorted, function(a, b)
         return a.damage > b.damage
     end)
 
-    return sorted[1].tool
+    return sorted[1] and sorted[1].tool or nil
 end
 
 local function cutPart(event, section, height, tool, treeClass)
@@ -216,22 +220,24 @@ end
 local function getBiggestTree(treeClass)
     local biggest = nil
     local maxSize = 0
-    for _, region in pairs(WS:GetChildren()) do
-        if region.Name == "TreeRegion" then
-            for _, tree in pairs(region:GetChildren()) do
-                if tree:FindFirstChild("TreeClass") and tree.TreeClass.Value == treeClass then
-                    local ws = tree:FindFirstChild("WoodSection")
-                    if ws then
-                        local size = ws.Size.X * ws.Size.Y * ws.Size.Z
-                        if size > maxSize then
-                            maxSize = size
-                            biggest = tree
+    local success, result = pcall(function()
+        for _, region in pairs(WS:GetChildren()) do
+            if region.Name == "TreeRegion" then
+                for _, tree in pairs(region:GetChildren()) do
+                    if tree:FindFirstChild("TreeClass") and tree.TreeClass.Value == treeClass then
+                        local ws = tree:FindFirstChild("WoodSection")
+                        if ws then
+                            local size = ws.Size.X * ws.Size.Y * ws.Size.Z
+                            if size > maxSize then
+                                maxSize = size
+                                biggest = tree
+                            end
                         end
                     end
                 end
             end
         end
-    end
+    end)
     return biggest
 end
 
@@ -251,11 +257,13 @@ local function tp(pos)
     if not LP.Character then return end
     local hrp = LP.Character:FindFirstChild("HumanoidRootPart")
     if not hrp then return end
-    if typeof(pos) == "CFrame" then
-        hrp.CFrame = pos
-    elseif typeof(pos) == "Vector3" then
-        hrp.Position = pos
-    end
+    local success, err = pcall(function()
+        if typeof(pos) == "CFrame" then
+            hrp.CFrame = pos
+        elseif typeof(pos) == "Vector3" then
+            hrp.Position = pos
+        end
+    end)
 end
 
 local function getNearestTeleport()
@@ -287,12 +295,16 @@ local function bringTree(treeClass)
     local listener
 
     listener = treeListener(treeClass, function(tree)
-        tree:WaitForChild('Owner', 60)
-        tree.PrimaryPart = tree:FindFirstChild("WoodSection")
+        local success = pcall(function()
+            tree:WaitForChild('Owner', 60)
+            tree.PrimaryPart = tree:FindFirstChild("WoodSection")
+        end)
         treeCut = true
         task.spawn(function()
             for i = 1, 60 do
-                RS.Interaction.ClientIsDragging:FireServer(tree)
+                pcall(function()
+                    RS.Interaction.ClientIsDragging:FireServer(tree)
+                end)
                 task.wait(0.05)
             end
         end)
@@ -301,7 +313,9 @@ local function bringTree(treeClass)
         if tree.PrimaryPart then
             task.spawn(function()
                 for i = 1, 60 do
-                    tree:PivotTo(Config.treecutset or CFrame.new(0, 0, 0))
+                    pcall(function()
+                        tree:PivotTo(Config.treecutset or CFrame.new(0, 0, 0))
+                    end)
                     task.wait(0.05)
                 end
             end)
@@ -334,8 +348,10 @@ local function bringTree(treeClass)
         local attempts = 0
         while not treeCut and attempts < 100 do
             if not LP.Character then break end
-            tp(ws.CFrame + Vector3.new(3, 3, 0))
-            cutPart(tree.CutEvent, 1, 0.3, tool, treeClass)
+            pcall(function()
+                tp(ws.CFrame + Vector3.new(3, 3, 0))
+                cutPart(tree.CutEvent, 1, 0.3, tool, treeClass)
+            end)
             task.wait(0.1)
             attempts = attempts + 1
         end
@@ -351,38 +367,42 @@ end
 -- 卖木头功能
 -- ============================================================
 local function sellWood()
-    for _, plank in pairs(WS.PlayerModels:GetChildren()) do
-        if plank.Name == "Plank" and plank:FindFirstChild("Owner") then
-            if plank.Owner.Value == LP then
-                local ws = plank:FindFirstChild("WoodSection")
-                if ws then
-                    ws.CFrame = CFrame.new(315, -0.296, 85.791)
-                    task.wait(0.05)
-                    RS.Interaction.ClientIsDragging:FireServer(plank)
+    local success = pcall(function()
+        for _, plank in pairs(WS.PlayerModels:GetChildren()) do
+            if plank.Name == "Plank" and plank:FindFirstChild("Owner") then
+                if plank.Owner.Value == LP then
+                    local ws = plank:FindFirstChild("WoodSection")
+                    if ws then
+                        ws.CFrame = CFrame.new(315, -0.296, 85.791)
+                        task.wait(0.05)
+                        RS.Interaction.ClientIsDragging:FireServer(plank)
+                    end
                 end
             end
         end
-    end
+    end)
 end
 
 local function collectWood()
-    for _, v in pairs(WS.LogModels:GetChildren()) do
-        if v:FindFirstChild("Owner") and v.Owner.Value == LP then
-            if not v.PrimaryPart then
-                v.PrimaryPart = v:FindFirstChild("WoodSection")
-            end
-            task.spawn(function()
-                for i = 1, 50 do
-                    RS.Interaction.ClientIsDragging:FireServer(v)
-                    task.wait(0.05)
+    local success = pcall(function()
+        for _, v in pairs(WS.LogModels:GetChildren()) do
+            if v:FindFirstChild("Owner") and v.Owner.Value == LP then
+                if not v.PrimaryPart then
+                    v.PrimaryPart = v:FindFirstChild("WoodSection")
                 end
-            end)
-            for i = 1, 50 do
-                task.wait(0.05)
-                v:PivotTo(Config.treecutset or CFrame.new(0, 0, 0))
+                task.spawn(function()
+                    for i = 1, 50 do
+                        RS.Interaction.ClientIsDragging:FireServer(v)
+                        task.wait(0.05)
+                    end
+                end)
+                for i = 1, 50 do
+                    task.wait(0.05)
+                    v:PivotTo(Config.treecutset or CFrame.new(0, 0, 0))
+                end
             end
         end
-    end
+    end)
 end
 
 -- ============================================================
@@ -458,22 +478,26 @@ local function stopMoney()
 end
 
 -- ============================================================
--- ✅【修复】玩家功能 - 防御 nil
+-- ✅【关键修复】玩家功能 - 完整的 nil 防御
 -- ============================================================
 local function setSpeed(speed)
-    speed = speed or 16
+    speed = tonumber(speed) or 16
     Config.speed = speed
-    if LP.Character and LP.Character:FindFirstChild("Humanoid") then
-        LP.Character.Humanoid.WalkSpeed = speed
-    end
+    local success, err = pcall(function()
+        if LP.Character and LP.Character:FindFirstChild("Humanoid") then
+            LP.Character.Humanoid.WalkSpeed = speed
+        end
+    end)
 end
 
 local function setJumpPower(power)
-    power = power or 50
+    power = tonumber(power) or 50
     Config.jumpPower = power
-    if LP.Character and LP.Character:FindFirstChild("Humanoid") then
-        LP.Character.Humanoid.JumpPower = power
-    end
+    local success, err = pcall(function()
+        if LP.Character and LP.Character:FindFirstChild("Humanoid") then
+            LP.Character.Humanoid.JumpPower = power
+        end
+    end)
 end
 
 -- 飞行功能
@@ -603,8 +627,10 @@ local function toggleAntiAFK(state)
     if state then
         if not Conns.afkConn then
             Conns.afkConn = RunService.Heartbeat:Connect(function()
-                VirtualUser:CaptureController()
-                VirtualUser:ClickButton2(Vector2.new())
+                pcall(function()
+                    VirtualUser:CaptureController()
+                    VirtualUser:ClickButton2(Vector2.new())
+                end)
             end)
         end
     else
@@ -712,7 +738,9 @@ local function toggleTreeCam(state)
             if ws then
                 local cam = workspace.CurrentCamera
                 Conns.treeCamConn = RunService.RenderStepped:Connect(function()
-                    cam.CFrame = CFrame.new(ws.Position + Vector3.new(10, 5, 10), ws.Position)
+                    pcall(function()
+                        cam.CFrame = CFrame.new(ws.Position + Vector3.new(10, 5, 10), ws.Position)
+                    end)
                 end)
                 Notify("树相机", "已锁定到树", 2)
             end
@@ -852,7 +880,9 @@ local function buyItem(itemName, quantity)
     Notify("商店", "正在购买: " .. itemName, 3)
     task.spawn(function()
         for i = 1, quantity do
-            RS.Interaction.RemoteProxy:FireServer("BuyItem", itemName)
+            pcall(function()
+                RS.Interaction.RemoteProxy:FireServer("BuyItem", itemName)
+            end)
             task.wait(0.2)
         end
         Notify("商店", "购买完成", 2)
@@ -862,8 +892,10 @@ local function buyItem(itemName, quantity)
 end
 
 -- ============================================================
--- ✅ 创建UI标签页（所有功能完整保留）
+-- ✅ UI创建 - 延迟加载，避免初始化冲突
 -- ============================================================
+task.wait(0.5)
+
 local HomeTab = Window:Tab({
     Title = "主页",
     Icon = "house",
@@ -1020,13 +1052,17 @@ SellSection:Button({
                 end
                 task.spawn(function()
                     for i = 1, 50 do
-                        RS.Interaction.ClientIsDragging:FireServer(v)
+                        pcall(function()
+                            RS.Interaction.ClientIsDragging:FireServer(v)
+                        end)
                         task.wait(0.05)
                     end
                 end)
                 for i = 1, 50 do
                     task.wait(0.05)
-                    v:PivotTo(oldPos)
+                    pcall(function()
+                        v:PivotTo(oldPos)
+                    end)
                 end
             end
         end
@@ -1476,5 +1512,6 @@ SettingsSection:Button({
 -- ============================================================
 -- ✅ 最终启动通知
 -- ============================================================
+task.wait(0.5)
 Notify("Dynxe LT2【修复版】", "全部功能加载完成！\n版本: v0.0.576‑fix", 5)
 print("✅ Dynxe LT2【修复版】全部功能已加载完成！")
