@@ -51,34 +51,34 @@ local LP = Players.LocalPlayer
 local RS = game:GetService("ReplicatedStorage")
 local WS = game:GetService("Workspace")
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 local Mouse = LP:GetMouse()
 
 -- ============================================================
--- 白脚本配置
+-- 配置表
 -- ============================================================
 local bai = {
     cuttreeselect = "Generic",
     autofarm = false,
     autofarm1 = false,
     autosell = false,
-    autosellPlanks = false,
     treecutset = nil,
-    farmLoop = nil,
-    sellLoop = nil,
-    moneyLoop = nil,
     speed = 16,
     jumpPower = 50,
     flyEnabled = false,
     noclipEnabled = false,
-    infiniteJump = false,
-    antiRagdoll = false,
-    antiAFK = false,
-    antiVoid = false,
-    antiFling = false,
-    axeRecovery = false,
-    treeCam = false,
-    espEnabled = false,
-    highlightColor = Color3.fromRGB(255, 0, 0),
+    walkspeed = 16,
+    JumpPower = 50,
+    bringamount = 1,
+    loaddupeaxewaittime = 3.1,
+    autodropae = false,
+    autopick = false,
+    playernamedied = "",
+    dropdown = {},
+    waterwalk = false,
+    awaysday = false,
+    awaysdnight = false,
+    nofog = false,
     soltnumber = "1",
     autobuyamount = 1,
     shopItem = "Axe1",
@@ -86,20 +86,6 @@ local bai = {
     autobuyset = nil,
     autocsdx = nil,
     noclipConn = nil,
-    walkspeed = 16,
-    JumpPower = 50,
-    bringamount = 1,
-    bringtree = false,
-    loaddupeaxewaittime = 3.1,
-    autodropae = false,
-    autopick = false,
-    whthmose = false,
-    playernamedied = "",
-    dropdown = {},
-    waterwalk = false,
-    awaysday = false,
-    awaysdnight = false,
-    nofog = false,
 }
 
 -- ============================================================
@@ -107,16 +93,11 @@ local bai = {
 -- ============================================================
 local Conns = {
     noclipConn = nil,
-    infJumpConn = nil,
-    afkConn = nil,
-    antiVoidConn = nil,
-    antiFlingConn = nil,
-    antiRagdollConn = nil,
-    treeCamConn = nil,
-    espConn = nil,
     farmLoop = nil,
     sellLoop = nil,
     moneyLoop = nil,
+    afkConn = nil,
+    antiVoidConn = nil,
 }
 
 -- ============================================================
@@ -421,61 +402,6 @@ local function bringTree(treeClass)
     return true
 end
 
-local function autofarm(treeClass)
-    local oldpos = getPosition()
-    local tool = getBestAxe()
-    if not tool then
-        Notify("白", "你需要斧头", 4)
-        return
-    end
-
-    if treeClass == "LoneCave" and tool.ToolName.Value ~= "EndTimesAxe" then
-        Notify("白", "幻影木需要末日斧头", 4)
-        return
-    end
-
-    local tree = getBiggestTree(treeClass)
-    if not tree then
-        Notify("白", "没有找到树", 3)
-        return
-    end
-
-    local treeCut = false
-    local treeListenerCon
-
-    treeListenerCon = treeListener(treeClass, function(tree)
-        tree.PrimaryPart = tree:FindFirstChild("WoodSection")
-        treeCut = true
-
-        for i = 1, 70 do
-            RS.Interaction.ClientIsDragging:FireServer(tree.WoodSection)
-            tree:MoveTo(oldpos.Position)
-            task.wait()
-        end
-    end)
-
-    task.wait(0.15)
-
-    task.spawn(function()
-        repeat
-            tp(tree.trunk.CFrame * CFrame.new(4, 3, 4))
-            task.wait()
-        until treeCut
-    end)
-
-    task.wait()
-
-    repeat
-        cutPart(tree.tree.CutEvent, 1, 0.3, tool, treeClass)
-        task.wait(0.1)
-    until treeCut
-
-    if not bai.autofarm1 then
-        Notify("白", "完成", 3)
-    end
-    tp(oldpos)
-end
-
 -- ============================================================
 -- 卖木头功能
 -- ============================================================
@@ -500,30 +426,6 @@ local function sellWood()
         end
     end
     tp(oldpos)
-end
-
-local function sellPlanks()
-    for _, plank in pairs(WS.PlayerModels:GetChildren()) do
-        if plank.Name == "Plank" and plank:FindFirstChild("Owner") then
-            if plank.Owner.Value == LP then
-                local ws = plank:FindFirstChild("WoodSection")
-                if ws then
-                    task.spawn(function()
-                        for i = 1, 10 do
-                            task.wait()
-                            ws.CFrame = CFrame.new(315, -0.296, 85.791) * CFrame.Angles(math.rad(90), 0, 0)
-                        end
-                    end)
-                    task.spawn(function()
-                        for i = 1, 20 do
-                            task.wait()
-                            RS.Interaction.ClientIsDragging:FireServer(plank)
-                        end
-                    end)
-                end
-            end
-        end
-    end
 end
 
 function lowerBridge(value)
@@ -572,8 +474,9 @@ end
 -- 商店物品列表
 -- ============================================================
 local ShopItems = {
-    '普通斧头', '钢斧', '硬化斧', '银斧头', '基础斧头', '沙子袋', '灯泡',
-    '毛毛虫软糖', '炸药', '锯木机01', '锯木机02', '普通锯木厂', '传送带'
+    '普通斧头', '钢斧', '硬化斧', '银斧头', '基础斧头',
+    '沙子袋', '灯泡', '毛毛虫软糖', '炸药',
+    '锯木机01', '锯木机02', '普通锯木厂', '传送带'
 }
 
 local ShopItemMap = {
@@ -689,7 +592,7 @@ function autobuy(o, r)
 end
 
 -- ============================================================
--- ✅ 创建UI - 使用正确的方法名
+-- ✅ 创建UI
 -- ============================================================
 task.wait(0.5)
 
@@ -1114,15 +1017,6 @@ WoodSection:Button({
     end
 })
 
-WoodSection:Button({
-    Title = "卖所有木板",
-    Desc = "卖掉所有木板",
-    Callback = function()
-        sellPlanks()
-        Notify("白", "已卖出所有木板", 3)
-    end
-})
-
 WoodSection:Toggle({
     Title = "自动卖木头",
     Desc = "自动卖掉所有木头",
@@ -1158,7 +1052,7 @@ MoneySection:Toggle({
             Notify("白", "请确保自动卖木头已开启", 3)
             Conns.moneyLoop = task.spawn(function()
                 while bai.autofarm1 do
-                    autofarm(bai.cuttreeselect)
+                    bringTree(bai.cuttreeselect)
                     task.wait(1)
                     sellWood()
                     task.wait(20)
