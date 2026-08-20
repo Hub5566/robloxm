@@ -133,6 +133,10 @@ local bai = {
     stopcar = false,
     isFlyEnabled = false,
     flySpeed = 50,
+    autosell = false,
+    autosellPlanks = false,
+    shopItem = "Axe1",
+    noclipConn = nil,
 }
 
 -- ============================================================
@@ -157,7 +161,7 @@ local function getTools()
 end
 
 local function getTool()
-    return LP.Character:FindFirstChildOfClass("Tool") or LP.Backpack:FindFirstChildOfClass("Tool")
+    return LP.Character and LP.Character:FindFirstChildOfClass("Tool") or LP.Backpack:FindFirstChildOfClass("Tool")
 end
 
 local function getToolStats(toolName)
@@ -182,7 +186,7 @@ function getTieredAxe()
         ['SilverAxe'] = 5, ['EndTimesAxe'] = 16, ['AxeChicken'] = 6,
         ['CandyCaneAxe'] = 1, ['AxeTwitter'] = 7, ['CandyCornAxe'] = 14
     }
-end
+}
 
 function getAxeList()
     local aP = {}
@@ -259,12 +263,16 @@ local function carTeleport(cframe)
 end
 
 local function getPosition()
-    return LP.Character and LP.Character.HumanoidRootPart and LP.Character.HumanoidRootPart.CFrame or CFrame.new()
+    if LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then
+        return LP.Character.HumanoidRootPart.CFrame
+    end
+    return CFrame.new()
 end
 
 local function droptool(position)
     local char = LP.Character
-    if char and char:FindFirstChildOfClass("Tool") then
+    if not char then return end
+    if char:FindFirstChildOfClass("Tool") then
         local tool = char:FindFirstChildOfClass("Tool")
         if tool:FindFirstChild("ToolName") then
             RS.Interaction.ClientInteracted:FireServer(tool, "Drop tool", position or char.Head.CFrame)
@@ -653,12 +661,6 @@ local function sellPlanks()
 end
 
 -- ============================================================
--- 传送点
--- ============================================================
-local TeleportPoints = {}
-local pointIndex = 0
-
--- ============================================================
 -- 树类型
 -- ============================================================
 local TreeData = {
@@ -702,18 +704,19 @@ local ShopItems = {
     '漏斗式传送带', '小型地板', '小型瓷砖', '矮波纹墙角', '波纹墙', '大型地板',
     '微型瓷砖', '微型地板', '1/1木楔', '左转直式传送带', '银斧头', '切割机',
     '基础斧头', '右转传送带', '普通斧头', '转向传送带支架', '传送带支架',
-    '波纹墙角立柱', '楼梯', '陡峭楼梯', '钢斧', '标志杆', '梯子', '大型瓷砖',
-    '瓷砖', '硬化斧', '半截门', '木头清扫机', '光滑墙立柱', '沙子袋', '小型拖车',
-    '531式拖车', '小汽车XL', '大卡车', '长沙发', '洗碗机', '薄柜子', '冰箱', '火炉',
-    '马桶', '双人沙发', '床', '落地灯', '台灯', '微型玻璃板', '小型玻璃板', '玻璃板',
-    '大型玻璃板', '玻璃门', '琥珀色冰柱灯串', '红色冰柱灯串', '绿色冰柱灯串',
-    '蓝色冰柱灯串', '烟花发射器', '惊悚冰柱灯串', '单人沙发', '双人床', '灯泡',
-    '工作台面', '薄工作台面', '带水槽的工作台面', '照明灯', '墙灯', '橱柜角',
-    '宽橱柜角', '橱柜', '炸药', '毛毛虫软糖', '困扰装饰画', '户外水彩素描',
-    '阴郁的黄昏海景', '北极灯串', '菠萝画', '孤独的长颈鹿', '信号维持器', '与门',
-    '异与门', '木材检测器', 'OR门', '拉杆', '信号延时器', '信号变换器', '激光',
-    '激光探测器', '舱门', '橙色发光线', '绿色发光线', '黄色发光线', '白色发光线',
-    '紫色发光线', '红色发光线', '青色发光线', '蓝色发光线', '定时开关'
+    '楼梯', '陡峭楼梯', '钢斧', '标志杆', '梯子', '大型瓷砖', '瓷砖', '硬化斧',
+    '半截门', '木头清扫机', '沙子袋', '小型拖车', '531式拖车', '小汽车XL', '大卡车',
+    '长沙发', '洗碗机', '薄柜子', '冰箱', '马桶', '双人沙发', '床', '落地灯', '台灯',
+    '微型玻璃板', '小型玻璃板', '玻璃板', '大型玻璃板', '玻璃门',
+    '琥珀色冰柱灯串', '红色冰柱灯串', '绿色冰柱灯串', '蓝色冰柱灯串',
+    '烟花发射器', '惊悚冰柱灯串', '单人沙发', '双人床', '灯泡', '工作台面',
+    '薄工作台面', '带水槽的工作台面', '照明灯', '墙灯', '橱柜角', '宽橱柜角',
+    '橱柜', '炸药', '毛毛虫软糖', '困扰装饰画', '户外水彩素描', '阴郁的黄昏海景',
+    '北极灯串', '菠萝画', '孤独的长颈鹿', '信号维持器', '与门', '异与门',
+    '木材检测器', 'OR门', '拉杆', '信号延时器', '信号变换器', '激光',
+    '激光探测器', '舱门', '橙色发光线', '绿色发光线', '黄色发光线',
+    '白色发光线', '紫色发光线', '红色发光线', '青色发光线', '蓝色发光线',
+    '定时开关'
 }
 
 local ShopItemMap = {
@@ -744,32 +747,31 @@ local ShopItemMap = {
     ['楼梯'] = 'Stair2', ['陡峭楼梯'] = 'Stair1', ['钢斧'] = 'Axe2', ['标志杆'] = 'Post',
     ['梯子'] = 'Ladder1', ['大型瓷砖'] = 'Floor2Large', ['瓷砖'] = 'Floor2',
     ['硬化斧'] = 'Axe3', ['半截门'] = 'Door2', ['木头清扫机'] = 'LogSweeper',
-    ['光滑墙立柱'] = 'Wall2ShortThin', ['沙子袋'] = 'BagOfSand', ['小型拖车'] = 'SmallTrailer',
-    ['531式拖车'] = 'Trailer2', ['小汽车XL'] = 'UtilityTruck2', ['大卡车'] = 'Pickup1',
-    ['长沙发'] = 'Seat_Couch', ['洗碗机'] = 'Dishwasher', ['薄柜子'] = 'Cabinet1Thin',
-    ['冰箱'] = 'Refridgerator', ['马桶'] = 'Toilet', ['双人沙发'] = 'Seat_Loveseat',
-    ['床'] = 'Bed1', ['落地灯'] = 'FloorLamp1', ['台灯'] = 'Lamp1',
-    ['微型玻璃板'] = 'GlassPane1', ['小型玻璃板'] = 'GlassPane2', ['玻璃板'] = 'GlassPane3',
-    ['大型玻璃板'] = 'GlassPane4', ['玻璃门'] = 'GlassDoor1',
-    ['琥珀色冰柱灯串'] = 'IcicleWireAmber', ['红色冰柱灯串'] = 'IcicleWireRed',
-    ['绿色冰柱灯串'] = 'IcicleWireGreen', ['蓝色冰柱灯串'] = 'IcicleWireBlue',
-    ['烟花发射器'] = 'FireworkLauncher', ['惊悚冰柱灯串'] = 'IcicleWireHalloween',
-    ['单人沙发'] = 'Seat_Armchair', ['双人床'] = 'Bed2', ['灯泡'] = 'LightBulb',
-    ['工作台面'] = 'CounterTop1', ['薄工作台面'] = 'CounterTop1Thin',
-    ['带水槽的工作台面'] = 'CounterTop1Sink', ['照明灯'] = 'WallLight2',
-    ['墙灯'] = 'WallLight1', ['橱柜角'] = 'Cabinet1CornerTight',
-    ['宽橱柜角'] = 'Cabinet1CornerWide', ['橱柜'] = 'Cabinet1',
-    ['毛毛虫软糖'] = 'CanOfWorms', ['炸药'] = 'Dynamite', ['困扰装饰画'] = 'Painting2',
-    ['户外水彩素描'] = 'Painting3', ['阴郁的黄昏海景'] = 'Painting6',
-    ['北极灯串'] = 'Painting7', ['菠萝画'] = 'Painting8', ['孤独的长颈鹿'] = 'Painting9',
-    ['信号维持器'] = 'SignalSustain', ['与门'] = 'GateAND', ['异与门'] = 'GateXOR',
-    ['木材检测器'] = 'WoodChecker', ['OR门'] = 'GateOR', ['拉杆'] = 'Lever0',
-    ['信号延时器'] = 'SignalDelay', ['信号变换器'] = 'GateNOT', ['激光'] = 'Laser',
-    ['激光探测器'] = 'LaserReceiver', ['舱门'] = 'Hatch', ['橙色发光线'] = 'NeonWireOrange',
-    ['绿色发光线'] = 'NeonWireGreen', ['黄色发光线'] = 'NeonWireYellow',
-    ['白色发光线'] = 'NeonWireWhite', ['紫色发光线'] = 'NeonWireViolet',
-    ['红色发光线'] = 'NeonWireRed', ['青色发光线'] = 'NeonWireCyan',
-    ['蓝色发光线'] = 'NeonWireBlue', ['定时开关'] = 'ClockSwitch'
+    ['沙子袋'] = 'BagOfSand', ['小型拖车'] = 'SmallTrailer', ['531式拖车'] = 'Trailer2',
+    ['小汽车XL'] = 'UtilityTruck2', ['大卡车'] = 'Pickup1', ['长沙发'] = 'Seat_Couch',
+    ['洗碗机'] = 'Dishwasher', ['薄柜子'] = 'Cabinet1Thin', ['冰箱'] = 'Refridgerator',
+    ['马桶'] = 'Toilet', ['双人沙发'] = 'Seat_Loveseat', ['床'] = 'Bed1',
+    ['落地灯'] = 'FloorLamp1', ['台灯'] = 'Lamp1', ['微型玻璃板'] = 'GlassPane1',
+    ['小型玻璃板'] = 'GlassPane2', ['玻璃板'] = 'GlassPane3', ['大型玻璃板'] = 'GlassPane4',
+    ['玻璃门'] = 'GlassDoor1', ['琥珀色冰柱灯串'] = 'IcicleWireAmber',
+    ['红色冰柱灯串'] = 'IcicleWireRed', ['绿色冰柱灯串'] = 'IcicleWireGreen',
+    ['蓝色冰柱灯串'] = 'IcicleWireBlue', ['烟花发射器'] = 'FireworkLauncher',
+    ['惊悚冰柱灯串'] = 'IcicleWireHalloween', ['单人沙发'] = 'Seat_Armchair',
+    ['双人床'] = 'Bed2', ['灯泡'] = 'LightBulb', ['工作台面'] = 'CounterTop1',
+    ['薄工作台面'] = 'CounterTop1Thin', ['带水槽的工作台面'] = 'CounterTop1Sink',
+    ['照明灯'] = 'WallLight2', ['墙灯'] = 'WallLight1', ['橱柜角'] = 'Cabinet1CornerTight',
+    ['宽橱柜角'] = 'Cabinet1CornerWide', ['橱柜'] = 'Cabinet1', ['毛毛虫软糖'] = 'CanOfWorms',
+    ['炸药'] = 'Dynamite', ['困扰装饰画'] = 'Painting2', ['户外水彩素描'] = 'Painting3',
+    ['阴郁的黄昏海景'] = 'Painting6', ['北极灯串'] = 'Painting7', ['菠萝画'] = 'Painting8',
+    ['孤独的长颈鹿'] = 'Painting9', ['信号维持器'] = 'SignalSustain', ['与门'] = 'GateAND',
+    ['异与门'] = 'GateXOR', ['木材检测器'] = 'WoodChecker', ['OR门'] = 'GateOR',
+    ['拉杆'] = 'Lever0', ['信号延时器'] = 'SignalDelay', ['信号变换器'] = 'GateNOT',
+    ['激光'] = 'Laser', ['激光探测器'] = 'LaserReceiver', ['舱门'] = 'Hatch',
+    ['橙色发光线'] = 'NeonWireOrange', ['绿色发光线'] = 'NeonWireGreen',
+    ['黄色发光线'] = 'NeonWireYellow', ['白色发光线'] = 'NeonWireWhite',
+    ['紫色发光线'] = 'NeonWireViolet', ['红色发光线'] = 'NeonWireRed',
+    ['青色发光线'] = 'NeonWireCyan', ['蓝色发光线'] = 'NeonWireBlue',
+    ['定时开关'] = 'ClockSwitch'
 }
 
 GetShopID = {
@@ -1033,7 +1035,6 @@ PlayerSection1:Button({
 })
 
 local function TurnInvisible()
-    -- 简化版隐身
     if LP.Character then
         for _, part in pairs(LP.Character:GetDescendants()) do
             if part:IsA("BasePart") then
@@ -1225,7 +1226,7 @@ AxeSection:Button({
     end
 })
 
-AxeSection:Textbox({
+AxeSection:Input({
     Title = "加载复制斧头等待时间",
     Desc = "死亡后加载时间(秒)",
     Value = "3.1",
@@ -1347,7 +1348,7 @@ BaseSection:Button({
     end
 })
 
-BaseSection:Textbox({
+BaseSection:Input({
     Title = "选择存档",
     Desc = "输入存档编号(1-6)",
     Value = "1",
@@ -1487,7 +1488,7 @@ BringTreeSection:Dropdown({
     end
 })
 
-BringTreeSection:Textbox({
+BringTreeSection:Input({
     Title = "带来树的数量",
     Desc = "每次带来树的数量",
     Value = "1",
@@ -1783,7 +1784,7 @@ ShopSection1:Dropdown({
     end
 })
 
-ShopSection1:Textbox({
+ShopSection1:Input({
     Title = "购买数量",
     Desc = "要购买的数量",
     Value = "1",
@@ -1950,7 +1951,6 @@ DevilSection:Button({
             return
         end
 
-        -- 简化版斧头攻击
         if target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
             local oldpos = getPosition()
             local hrp = target.Character.HumanoidRootPart
